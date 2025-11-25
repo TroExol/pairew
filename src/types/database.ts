@@ -111,32 +111,6 @@ export interface Database {
           created_at?: string;
         };
       };
-      room_movies: {
-        Row: {
-          id: string;
-          room_id: string;
-          movie_id: number;
-          movie_data: Record<string, unknown>;
-          position: number;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          room_id: string;
-          movie_id: number;
-          movie_data: Record<string, unknown>;
-          position: number;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          room_id?: string;
-          movie_id?: number;
-          movie_data?: Record<string, unknown>;
-          position?: number;
-          created_at?: string;
-        };
-      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
