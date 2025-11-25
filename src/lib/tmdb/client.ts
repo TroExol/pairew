@@ -80,20 +80,33 @@ class TmdbClient {
     withCrew?: number[];
     page?: number;
     sortBy?: string;
+    voteCountGte?: number;
+    voteAverageGte?: number;
   }): Promise<TmdbSearchResponse<TmdbMovie>> {
+    // Текущая дата для фильтрации невышедших фильмов
+    const today = new Date().toISOString().split('T')[0];
+
     const queryParams: Record<string, string> = {
-      page: (params.page || 1).toString(),
-      sort_by: params.sortBy || 'popularity.desc',
+      'page': (params.page || 1).toString(),
+      'sort_by': params.sortBy || 'popularity.desc',
+      // Фильтры качества по умолчанию: минимум 50 голосов и оценка 5.5
+      'vote_count.gte': (params.voteCountGte ?? 50).toString(),
+      'vote_average.gte': (params.voteAverageGte ?? 5.5).toString(),
+      // Только фильмы, которые уже вышли
+      'primary_release_date.lte': today,
     };
 
     if (params.genres?.length) {
-      queryParams.with_genres = params.genres.join(',');
+      // Используем | (OR) вместо , (AND) для более широкого поиска
+      queryParams.with_genres = params.genres.join('|');
     }
     if (params.yearFrom) {
       queryParams['primary_release_date.gte'] = `${params.yearFrom}-01-01`;
     }
     if (params.yearTo) {
-      queryParams['primary_release_date.lte'] = `${params.yearTo}-12-31`;
+      // Берём минимум между yearTo и сегодняшней датой, чтобы не показывать невышедшие фильмы
+      const yearToDate = `${params.yearTo}-12-31`;
+      queryParams['primary_release_date.lte'] = yearToDate < today ? yearToDate : today;
     }
     if (params.withCast?.length) {
       queryParams.with_cast = params.withCast.join(',');
@@ -102,7 +115,17 @@ class TmdbClient {
       queryParams.with_crew = params.withCrew.join(',');
     }
 
-    return this.fetch<TmdbSearchResponse<TmdbMovie>>('/discover/movie', queryParams);
+    const response = await this.fetch<TmdbSearchResponse<TmdbMovie>>('/discover/movie', queryParams);
+
+    // Постфильтрация: убираем фильмы без постера и описания
+    const filteredResults = response.results.filter(
+      movie => movie.poster_path && movie.overview && movie.overview.trim().length > 0,
+    );
+
+    return {
+      ...response,
+      results: filteredResults,
+    };
   }
 
   // Рекомендации на основе фильма

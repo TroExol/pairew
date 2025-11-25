@@ -2,6 +2,7 @@ import type { NextRequest } from 'next/server';
 
 import { NextResponse } from 'next/server';
 
+import type { TmdbMovie } from '@/types/tmdb';
 import type { Database } from '@/types/database';
 
 import { tmdbClient } from '@/lib/tmdb/client';
@@ -11,6 +12,21 @@ type Preferences = Database['public']['Tables']['preferences']['Row'];
 
 // Получить фильмы для комнаты на основе предпочтений участников
 export async function GET(request: NextRequest) {
+  // Получить случайную страницу из диапазона
+  const getRandomPage = (totalPages: number, maxPage = 10): number => {
+    const availablePages = Math.min(totalPages, maxPage);
+    return Math.floor(Math.random() * availablePages) + 1;
+  };
+
+  // Fisher-Yates shuffle для случайного перемешивания массива
+  const shuffleArray = <T>(array: T[]): T[] => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
   const searchParams = request.nextUrl.searchParams;
   const roomId = searchParams.get('roomId');
   const page = parseInt(searchParams.get('page') || '1', 10);
@@ -72,46 +88,93 @@ export async function GET(request: NextRequest) {
   const yearTo = yearToValues.length > 0 ? Math.min(...yearToValues) : undefined;
 
   try {
-    // Первая попытка - с полными фильтрами
-    let movies = await tmdbClient.discoverMovies({
+    const allMovies: TmdbMovie[] = [];
+    const seenIds = new Set<number>();
+
+    // Хелпер для добавления уникальных фильмов
+    const addUniqueMovies = (movies: TmdbMovie[]) => {
+      for (const movie of movies) {
+        if (!seenIds.has(movie.id)) {
+          seenIds.add(movie.id);
+          allMovies.push(movie);
+        }
+      }
+    };
+
+    // Первая попытка - с полными фильтрами и строгими требованиями к качеству
+    // Сначала делаем запрос на первую страницу, чтобы узнать total_pages
+    const initialMovies = await tmdbClient.discoverMovies({
       genres: commonGenres.length > 0 ? commonGenres : undefined,
       yearFrom,
       yearTo,
-      page,
+      page: 1,
       sortBy: 'popularity.desc',
+      voteCountGte: 100,
+      voteAverageGte: 6.0,
     });
 
-    // Если фильмов слишком мало (меньше 10), пробуем без года
-    if (movies.results.length < 10 && (yearFrom || yearTo)) {
+    // Выбираем случайную страницу из доступных (но не дальше 10-й, чтобы не уходить в совсем непопулярные)
+    const randomPage = getRandomPage(initialMovies.total_pages);
+
+    // Если случайная страница не первая, делаем дополнительный запрос
+    if (randomPage > 1) {
+      const randomPageMovies = await tmdbClient.discoverMovies({
+        genres: commonGenres.length > 0 ? commonGenres : undefined,
+        yearFrom,
+        yearTo,
+        page: randomPage,
+        sortBy: 'popularity.desc',
+        voteCountGte: 100,
+        voteAverageGte: 6.0,
+      });
+      addUniqueMovies(randomPageMovies.results);
+    }
+    addUniqueMovies(initialMovies.results);
+
+    // Если фильмов слишком мало (меньше 15), снижаем требования к качеству
+    if (allMovies.length < 15) {
+      const moviesLowerQuality = await tmdbClient.discoverMovies({
+        genres: commonGenres.length > 0 ? commonGenres : undefined,
+        yearFrom,
+        yearTo,
+        page: getRandomPage(5), // Случайная страница из первых 5
+        sortBy: 'popularity.desc',
+        voteCountGte: 30,
+        voteAverageGte: 5.0,
+      });
+      addUniqueMovies(moviesLowerQuality.results);
+    }
+
+    // Если всё ещё мало - пробуем без фильтра по годам
+    if (allMovies.length < 15 && (yearFrom || yearTo)) {
       const moviesWithoutYear = await tmdbClient.discoverMovies({
         genres: commonGenres.length > 0 ? commonGenres : undefined,
-        page,
+        page: getRandomPage(5),
         sortBy: 'popularity.desc',
+        voteCountGte: 50,
+        voteAverageGte: 5.5,
       });
-
-      // Объединяем результаты, удаляя дубликаты
-      const existingIds = new Set(movies.results.map(m => m.id));
-      const additionalMovies = moviesWithoutYear.results.filter(m => !existingIds.has(m.id));
-      movies = {
-        ...movies,
-        results: [...movies.results, ...additionalMovies].slice(0, 20),
-        total_results: movies.total_results + additionalMovies.length,
-      };
+      addUniqueMovies(moviesWithoutYear.results);
     }
 
-    // Если всё ещё мало - добавляем популярные фильмы без фильтров
-    if (movies.results.length < 10) {
-      const popularMovies = await tmdbClient.getPopularMovies(page);
-      const existingIds = new Set(movies.results.map(m => m.id));
-      const additionalMovies = popularMovies.results.filter(m => !existingIds.has(m.id));
-      movies = {
-        ...movies,
-        results: [...movies.results, ...additionalMovies].slice(0, 20),
-        total_results: movies.total_results + additionalMovies.length,
-      };
+    // Последний фолбэк - популярные фильмы
+    if (allMovies.length < 15) {
+      const popularMovies = await tmdbClient.getPopularMovies(getRandomPage(3));
+      const filteredPopular = popularMovies.results.filter(
+        m => m.poster_path && m.overview,
+      );
+      addUniqueMovies(filteredPopular);
     }
 
-    return NextResponse.json(movies);
+    // Перемешиваем результаты и берём первые 20
+    const shuffledMovies = shuffleArray(allMovies).slice(0, 20);
+
+    return NextResponse.json({
+      page,
+      results: shuffledMovies,
+      total_pages: initialMovies.total_pages,
+      total_results: initialMovies.total_results,
+    });
   } catch (error) {
     console.error('Error fetching movies for room:', error);
     return NextResponse.json(
