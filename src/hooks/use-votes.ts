@@ -5,6 +5,7 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 import {
   useCallback,
   useEffect,
+  useRef,
   useState,
 } from 'react';
 
@@ -42,6 +43,9 @@ export function useRoomResults(roomId: string | undefined): RoomResultsReturn {
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [votingProgress, setVotingProgress] = useState<VotingProgress | null>(null);
+
+  // Храним предыдущее количество завершивших для сравнения
+  const prevFinishedCountRef = useRef<number>(0);
 
   const supabase = createClient();
 
@@ -102,6 +106,9 @@ export function useRoomResults(roomId: string | undefined): RoomResultsReturn {
 
     const allFinished = finishedCount === participantCount;
 
+    // Обновляем ref с текущим значением
+    prevFinishedCountRef.current = finishedCount;
+
     setVotingProgress({
       participantCount,
       finishedCount,
@@ -135,6 +142,60 @@ export function useRoomResults(roomId: string | undefined): RoomResultsReturn {
     setLoading(false);
   }, [roomId, supabase]);
 
+  // Быстрая проверка прогресса без пересчёта результатов
+  const checkProgressAndMaybeRefetch = useCallback(async () => {
+    if (!roomId) return;
+
+    // Получаем количество голосов по каждому пользователю
+    const { data: allVotes } = await supabase
+      .from('votes')
+      .select('user_id')
+      .eq('room_id', roomId);
+
+    const { data: participants } = await supabase
+      .from('room_participants')
+      .select('user_id')
+      .eq('room_id', roomId);
+
+    if (!allVotes || !participants) return;
+
+    const userVoteCounts = new Map<string, number>();
+
+    // Инициализируем счётчики для всех участников
+    participants.forEach((p: { user_id: string }) => {
+      userVoteCounts.set(p.user_id, 0);
+    });
+
+    // Считаем голоса пользователей
+    allVotes.forEach((v: { user_id: string }) => {
+      const currentCount = userVoteCounts.get(v.user_id) || 0;
+      userVoteCounts.set(v.user_id, currentCount + 1);
+    });
+
+    // Считаем сколько участников завершили голосование
+    let finishedCount = 0;
+    userVoteCounts.forEach(count => {
+      if (count >= APP_CONFIG.MAX_SWIPES) {
+        finishedCount++;
+      }
+    });
+
+    // Обновляем прогресс голосования для отображения в UI
+    const allFinished = finishedCount === participants.length;
+    setVotingProgress({
+      participantCount: participants.length,
+      finishedCount,
+      allFinished,
+      userVoteCounts,
+    });
+
+    // Пересчитываем результаты только если изменилось количество завершивших
+    if (finishedCount !== prevFinishedCountRef.current) {
+      prevFinishedCountRef.current = finishedCount;
+      void fetchResults();
+    }
+  }, [roomId, supabase, fetchResults]);
+
   useEffect(() => {
     void fetchResults();
   }, [fetchResults]);
@@ -157,8 +218,8 @@ export function useRoomResults(roomId: string | undefined): RoomResultsReturn {
             filter: `room_id=eq.${roomId}`,
           },
           () => {
-            // Обновляем результаты при изменении голосов
-            void fetchResults();
+            // Проверяем прогресс и обновляем результаты только если кто-то завершил
+            void checkProgressAndMaybeRefetch();
           },
         )
         .subscribe();
@@ -171,7 +232,7 @@ export function useRoomResults(roomId: string | undefined): RoomResultsReturn {
         void supabase.removeChannel(channel);
       }
     };
-  }, [roomId, supabase, fetchResults]);
+  }, [roomId, supabase, checkProgressAndMaybeRefetch]);
 
   return { results, loading, votingProgress, refetch: fetchResults };
 }
