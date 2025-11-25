@@ -7,6 +7,7 @@ import {
   ChevronDown,
   ChevronUp,
   Clock,
+  ExternalLink,
   Film,
   RefreshCw,
   Share2,
@@ -321,6 +322,16 @@ function MovieResult({ movie, totalParticipants, highlight }: MovieResultProps) 
     ? `${TMDB_CONFIG.IMAGE_BASE_URL}/${TMDB_CONFIG.POSTER_SIZES.medium}${details.poster_path}`
     : null;
 
+  const year = details?.release_date
+    ? new Date(details.release_date).getFullYear()
+    : null;
+
+  const googleSearchUrl = details?.title
+    ? year
+      ? `https://www.google.com/search?q=${encodeURIComponent(`${details.title} ${year} фильм`)}`
+      : `https://www.google.com/search?q=${encodeURIComponent(`${details.title} фильм`)}`
+    : null;
+
   return (
     <div className={`flex gap-4 p-3 rounded-xl ${highlight ? 'bg-success/10' : 'bg-secondary/50'}`}>
       {posterUrl && (
@@ -335,13 +346,27 @@ function MovieResult({ movie, totalParticipants, highlight }: MovieResultProps) 
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <h3 className="font-semibold">{details?.title || `Фильм #${movie.movie_id}`}</h3>
+        {googleSearchUrl
+          ? (
+              <a
+                href={googleSearchUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group inline-flex items-center gap-1.5 hover:underline"
+              >
+                <h3 className="font-semibold">{details?.title}</h3>
+                <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+              </a>
+            )
+          : (
+              <h3 className="font-semibold">{`Фильм #${movie.movie_id}`}</h3>
+            )}
         {details && (
           <>
             <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-              {details.release_date && (
+              {year && (
                 <>
-                  <span>{new Date(details.release_date).getFullYear()}</span>
+                  <span>{year}</span>
                   <span>•</span>
                 </>
               )}
