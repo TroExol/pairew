@@ -276,6 +276,7 @@ export default function RoomPage() {
                 {voteCount}
                 {' '}
                 из
+                {' '}
                 {APP_CONFIG.MAX_SWIPES}
                 {' '}
                 фильмов
