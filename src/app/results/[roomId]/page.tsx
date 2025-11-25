@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import {
   ChevronDown,
   ChevronUp,
@@ -323,11 +324,15 @@ function MovieResult({ movie, totalParticipants, highlight }: MovieResultProps) 
   return (
     <div className={`flex gap-4 p-3 rounded-xl ${highlight ? 'bg-success/10' : 'bg-secondary/50'}`}>
       {posterUrl && (
-        <img
-          src={posterUrl}
-          alt={details?.title}
-          className="w-20 h-30 object-cover rounded-lg"
-        />
+        <div className="relative w-20 h-[120px] shrink-0">
+          <Image
+            src={posterUrl}
+            alt={details?.title ?? 'Постер фильма'}
+            fill
+            className="object-cover rounded-lg"
+            sizes="80px"
+          />
+        </div>
       )}
       <div className="flex-1 min-w-0">
         <h3 className="font-semibold line-clamp-1">{details?.title || `Фильм #${movie.movie_id}`}</h3>
