@@ -144,10 +144,13 @@ export function useRoom(roomId?: string): UseRoomReturn {
     if (!newRoom) throw new Error('Failed to create room');
 
     // Добавляем создателя как участника
-    await supabase.from('room_participants').insert({
-      room_id: newRoom.id,
-      user_id: user.id,
-    });
+    await supabase.from('room_participants').upsert(
+      {
+        room_id: newRoom.id,
+        user_id: user.id,
+      },
+      { onConflict: 'room_id,user_id' },
+    );
 
     setRoom(newRoom);
     return newRoom;
@@ -171,20 +174,14 @@ export function useRoom(roomId?: string): UseRoomReturn {
       throw new Error('Голосование уже началось или завершено');
     }
 
-    // Проверяем, не является ли пользователь уже участником
-    const { data: existingParticipant } = await supabase
-      .from('room_participants')
-      .select('id')
-      .eq('room_id', foundRoom.id)
-      .eq('user_id', user.id)
-      .single<{ id: string }>();
-
-    if (!existingParticipant) {
-      await supabase.from('room_participants').insert({
+    // Добавляем участника (upsert на случай повторного входа)
+    await supabase.from('room_participants').upsert(
+      {
         room_id: foundRoom.id,
         user_id: user.id,
-      });
-    }
+      },
+      { onConflict: 'room_id,user_id' },
+    );
 
     setRoom(foundRoom);
     return foundRoom;

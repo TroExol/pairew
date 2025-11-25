@@ -126,12 +126,15 @@ export function useVotes(roomId: string | undefined, userId: string | undefined)
 
     const { data, error } = await supabase
       .from('votes')
-      .insert({
-        room_id: roomId,
-        user_id: userId,
-        movie_id: movieId,
-        liked,
-      })
+      .upsert(
+        {
+          room_id: roomId,
+          user_id: userId,
+          movie_id: movieId,
+          liked,
+        },
+        { onConflict: 'room_id,user_id,movie_id' },
+      )
       .select()
       .single<Vote>();
 

@@ -56,10 +56,13 @@ export function usePreferences(userId: string | undefined) {
 
     const { data: savedData, error: saveError } = await supabase
       .from('preferences')
-      .upsert({
-        user_id: userId,
-        ...data,
-      })
+      .upsert(
+        {
+          user_id: userId,
+          ...data,
+        },
+        { onConflict: 'user_id' },
+      )
       .select()
       .single<Preferences>();
 
