@@ -9,9 +9,40 @@ import { tmdbClient } from '@/lib/tmdb/client';
 import { createClient } from '@/lib/supabase/server';
 
 type Preferences = Database['public']['Tables']['preferences']['Row'];
+type RoomMovie = Database['public']['Tables']['room_movies']['Row'];
 
 // Получить фильмы для комнаты на основе предпочтений участников
 export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const roomId = searchParams.get('roomId');
+
+  if (!roomId) {
+    return NextResponse.json({ error: 'Room ID is required' }, { status: 400 });
+  }
+
+  const supabase = await createClient();
+
+  // Сначала проверяем, есть ли уже сохранённые фильмы для этой комнаты
+  const { data: existingMovies } = await supabase
+    .from('room_movies')
+    .select('*')
+    .eq('room_id', roomId)
+    .order('position', { ascending: true })
+    .returns<RoomMovie[]>();
+
+  // Если фильмы уже сохранены - возвращаем их
+  if (existingMovies && existingMovies.length > 0) {
+    const movies = existingMovies.map(rm => rm.movie_data as unknown as TmdbMovie);
+    return NextResponse.json({
+      page: 1,
+      results: movies,
+      total_pages: 1,
+      total_results: movies.length,
+    });
+  }
+
+  // Фильмов ещё нет - генерируем и сохраняем
+
   // Получить случайную страницу из диапазона
   const getRandomPage = (totalPages: number, maxPage = 10): number => {
     const availablePages = Math.min(totalPages, maxPage);
@@ -27,15 +58,6 @@ export async function GET(request: NextRequest) {
     }
     return shuffled;
   };
-  const searchParams = request.nextUrl.searchParams;
-  const roomId = searchParams.get('roomId');
-  const page = parseInt(searchParams.get('page') || '1', 10);
-
-  if (!roomId) {
-    return NextResponse.json({ error: 'Room ID is required' }, { status: 400 });
-  }
-
-  const supabase = await createClient();
 
   // Получаем участников комнаты
   const { data: participants } = await supabase
@@ -169,11 +191,21 @@ export async function GET(request: NextRequest) {
     // Перемешиваем результаты и берём первые 20
     const shuffledMovies = shuffleArray(allMovies).slice(0, 20);
 
+    // Сохраняем фильмы в базу данных
+    const moviesToInsert = shuffledMovies.map((movie, index) => ({
+      room_id: roomId,
+      movie_id: movie.id,
+      movie_data: movie as unknown as Record<string, unknown>,
+      position: index,
+    }));
+
+    await supabase.from('room_movies').insert(moviesToInsert);
+
     return NextResponse.json({
-      page,
+      page: 1,
       results: shuffledMovies,
-      total_pages: initialMovies.total_pages,
-      total_results: initialMovies.total_results,
+      total_pages: 1,
+      total_results: shuffledMovies.length,
     });
   } catch (error) {
     console.error('Error fetching movies for room:', error);
