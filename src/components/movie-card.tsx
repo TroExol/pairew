@@ -98,7 +98,7 @@ export function MovieCard({ movie, className }: MovieCardProps) {
         </div>
       </div>
       <div className="p-4">
-        <p className="text-sm text-muted-foreground line-clamp-3">
+        <p className="text-sm text-muted-foreground">
           {movie.overview || 'Описание отсутствует'}
         </p>
       </div>
@@ -186,7 +186,7 @@ export function SwipeCard({ movie, onSwipe, className }: SwipeCardProps) {
               </span>
             </div>
           </div>
-          <p className="text-xs text-white/90 drop-shadow-[0_1px_3px_rgba(0,0,0,1)] leading-relaxed line-clamp-2 mt-2">
+          <p className="text-xs text-white/90 drop-shadow-[0_1px_3px_rgba(0,0,0,1)] leading-relaxed mt-2">
             {movie.overview || 'Описание отсутствует'}
           </p>
         </div>
