@@ -1,21 +1,37 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
 
 import {
+  createContext,
   useCallback,
+  useContext,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { createClient } from '@/lib/supabase/client';
 
-export function useAuth() {
+interface AuthContextValue {
+  user: User | null;
+  loading: boolean;
+  signOut: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextValue | null>(null);
+
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
     const getUser = async () => {
@@ -44,9 +60,25 @@ export function useAuth() {
     router.refresh();
   }, [supabase.auth, router]);
 
-  return {
+  const value = useMemo(() => ({
     user,
     loading,
     signOut,
-  };
+  }), [user, loading, signOut]);
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+
+  return context;
 }

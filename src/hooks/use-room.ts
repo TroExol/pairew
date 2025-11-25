@@ -12,6 +12,8 @@ import type { Database } from '@/types/database';
 
 import { createClient } from '@/lib/supabase/client';
 
+import { useAuth } from './use-auth';
+
 type Room = Database['public']['Tables']['rooms']['Row'];
 type RoomParticipant = Database['public']['Tables']['room_participants']['Row'];
 
@@ -33,6 +35,7 @@ export function useRoom(roomId?: string): UseRoomReturn {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
+  const { user } = useAuth();
   const supabase = createClient();
 
   // Загрузка комнаты
@@ -125,7 +128,6 @@ export function useRoom(roomId?: string): UseRoomReturn {
   }, [roomId, supabase]);
 
   const createRoom = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
     const code = generateRoomCode();
@@ -154,10 +156,9 @@ export function useRoom(roomId?: string): UseRoomReturn {
 
     setRoom(newRoom);
     return newRoom;
-  }, [supabase]);
+  }, [supabase, user]);
 
   const joinRoom = useCallback(async (code: string) => {
-    const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
     const { data: foundRoom, error: findError } = await supabase
@@ -185,13 +186,10 @@ export function useRoom(roomId?: string): UseRoomReturn {
 
     setRoom(foundRoom);
     return foundRoom;
-  }, [supabase]);
+  }, [supabase, user]);
 
   const leaveRoom = useCallback(async () => {
-    if (!room) return;
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!room || !user) return;
 
     await supabase
       .from('room_participants')
@@ -201,7 +199,7 @@ export function useRoom(roomId?: string): UseRoomReturn {
 
     setRoom(null);
     setParticipants([]);
-  }, [room, supabase]);
+  }, [room, supabase, user]);
 
   const startVoting = useCallback(async () => {
     if (!room) throw new Error('No room');

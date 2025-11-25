@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 
+import { AuthProvider } from '@/hooks/use-auth';
 import { ToastProvider } from '@/components/ui';
 
 interface ProvidersProps {
@@ -10,8 +11,10 @@ interface ProvidersProps {
 
 export function Providers({ children }: ProvidersProps) {
   return (
-    <ToastProvider>
-      {children}
-    </ToastProvider>
+    <AuthProvider>
+      <ToastProvider>
+        {children}
+      </ToastProvider>
+    </AuthProvider>
   );
 }
