@@ -9,6 +9,7 @@ import { tmdbClient } from '@/lib/tmdb/client';
 import { createClient } from '@/lib/supabase/server';
 
 type Preferences = Database['public']['Tables']['preferences']['Row'];
+type Room = Database['public']['Tables']['rooms']['Row'];
 
 // Получить фильмы для комнаты на основе предпочтений участников
 export async function GET(request: NextRequest) {
@@ -36,6 +37,40 @@ export async function GET(request: NextRequest) {
   }
 
   const supabase = await createClient();
+
+  // Проверяем, есть ли уже сохранённые фильмы для этой комнаты
+  const { data: room } = await supabase
+    .from('rooms')
+    .select('movie_ids')
+    .eq('id', roomId)
+    .single<Pick<Room, 'movie_ids'>>();
+
+  // Если фильмы уже выбраны для комнаты - возвращаем их
+  if (room?.movie_ids && room.movie_ids.length > 0) {
+    try {
+      // Загружаем информацию о фильмах по сохранённым ID
+      const moviePromises = room.movie_ids.map(id => tmdbClient.getMovieDetails(id));
+      const movieDetails = await Promise.all(moviePromises);
+
+      // Конвертируем TmdbMovieDetails в TmdbMovie, добавляя genre_ids из genres
+      const validMovies: TmdbMovie[] = movieDetails
+        .filter(m => m !== null)
+        .map(m => ({
+          ...m,
+          genre_ids: m.genres?.map(g => g.id) ?? [],
+        }));
+
+      return NextResponse.json({
+        page: 1,
+        results: validMovies,
+        total_pages: 1,
+        total_results: validMovies.length,
+      });
+    } catch (error) {
+      console.error('Error fetching cached movies:', error);
+      // Если не удалось загрузить кешированные фильмы, генерируем новые
+    }
+  }
 
   // Получаем участников комнаты
   const { data: participants } = await supabase
@@ -168,6 +203,13 @@ export async function GET(request: NextRequest) {
 
     // Перемешиваем результаты и берём первые 20
     const shuffledMovies = shuffleArray(allMovies).slice(0, 20);
+
+    // Сохраняем выбранные movie_ids в комнату, чтобы все участники видели одинаковые фильмы
+    const movieIds = shuffledMovies.map(m => m.id);
+    await supabase
+      .from('rooms')
+      .update({ movie_ids: movieIds })
+      .eq('id', roomId);
 
     return NextResponse.json({
       page,

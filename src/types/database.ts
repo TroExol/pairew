@@ -42,6 +42,7 @@ export interface Database {
           code: string;
           creator_id: string;
           status: 'waiting' | 'voting' | 'finished';
+          movie_ids: number[] | null;
           created_at: string;
           updated_at: string;
         };
@@ -50,6 +51,7 @@ export interface Database {
           code: string;
           creator_id: string;
           status?: 'waiting' | 'voting' | 'finished';
+          movie_ids?: number[] | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -58,6 +60,7 @@ export interface Database {
           code?: string;
           creator_id?: string;
           status?: 'waiting' | 'voting' | 'finished';
+          movie_ids?: number[] | null;
           created_at?: string;
           updated_at?: string;
         };
