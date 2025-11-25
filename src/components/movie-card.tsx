@@ -127,11 +127,12 @@ export function SwipeCard({ movie, onSwipe, className }: SwipeCardProps) {
   return (
     <div
       className={cn(
-        'swipe-card relative w-full max-w-sm mx-auto rounded-2xl overflow-hidden bg-card shadow-xl',
+        'swipe-card w-full max-w-sm mx-auto rounded-2xl overflow-hidden bg-card shadow-xl flex flex-col',
         className,
       )}
     >
-      <div className="relative aspect-[2/3]">
+      {/* Poster section - takes remaining space */}
+      <div className="relative flex-1 min-h-0">
         {posterUrl
           ? (
               <Image
@@ -162,48 +163,49 @@ export function SwipeCard({ movie, onSwipe, className }: SwipeCardProps) {
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 p-6">
+        <div className="absolute bottom-0 left-0 right-0 p-4">
           <a
             href={googleSearchUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="group inline-flex items-center gap-2 hover:underline"
           >
-            <h2 className="text-2xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+            <h2 className="text-xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
               {movie.title}
             </h2>
-            <ExternalLink className="h-5 w-5 text-white/70 opacity-0 transition-opacity group-hover:opacity-100" />
+            <ExternalLink className="h-4 w-4 text-white/70 opacity-0 transition-opacity group-hover:opacity-100" />
           </a>
-          <div className="flex items-center gap-3 mb-3 mt-2">
+          <div className="flex items-center gap-3 mt-1">
             {year && (
-              <Badge variant="secondary" className="bg-black/60 text-white backdrop-blur-sm border-0">{year}</Badge>
+              <Badge variant="secondary" className="bg-black/60 text-white backdrop-blur-sm border-0 text-xs">{year}</Badge>
             )}
             <div className="flex items-center gap-1">
               <Star className="h-4 w-4 fill-warning text-warning drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]" />
-              <span className="text-white font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+              <span className="text-white font-medium text-sm drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                 {movie.vote_average.toFixed(1)}
               </span>
             </div>
           </div>
-          <p className="text-sm text-white drop-shadow-[0_1px_3px_rgba(0,0,0,1)] leading-relaxed line-clamp-4">
+          <p className="text-xs text-white/90 drop-shadow-[0_1px_3px_rgba(0,0,0,1)] leading-relaxed line-clamp-2 mt-2">
             {movie.overview || 'Описание отсутствует'}
           </p>
         </div>
       </div>
-      <div className="flex justify-center gap-4 p-4">
+      {/* Buttons - fixed at bottom */}
+      <div className="flex justify-center gap-4 p-3 shrink-0 bg-card">
         <button
           type="button"
           onClick={() => onSwipe('left')}
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-error/20 text-error transition-colors hover:bg-error hover:text-white"
+          className="flex h-12 w-12 items-center justify-center rounded-full bg-error/20 text-error transition-colors hover:bg-error hover:text-white"
         >
-          <span className="text-2xl">✕</span>
+          <span className="text-xl">✕</span>
         </button>
         <button
           type="button"
           onClick={() => onSwipe('right')}
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-success/20 text-success transition-colors hover:bg-success hover:text-white"
+          className="flex h-12 w-12 items-center justify-center rounded-full bg-success/20 text-success transition-colors hover:bg-success hover:text-white"
         >
-          <span className="text-2xl">♥</span>
+          <span className="text-xl">♥</span>
         </button>
       </div>
     </div>

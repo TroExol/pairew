@@ -136,20 +136,20 @@ export default function RoomPage() {
 
   if (roomLoading) {
     return (
-      <>
+      <div className="full-height flex flex-col overflow-hidden">
         <Header />
-        <main className="min-h-[calc(100vh-65px)] flex items-center justify-center">
+        <main className="flex-1 flex items-center justify-center">
           <Spinner size="lg" />
         </main>
-      </>
+      </div>
     );
   }
 
   if (!room) {
     return (
-      <>
+      <div className="full-height flex flex-col overflow-hidden">
         <Header />
-        <main className="min-h-[calc(100vh-65px)] flex items-center justify-center p-4">
+        <main className="flex-1 flex items-center justify-center p-4">
           <Card className="max-w-md w-full">
             <CardHeader className="text-center">
               <CardTitle>Комната не найдена</CardTitle>
@@ -164,7 +164,7 @@ export default function RoomPage() {
             </CardContent>
           </Card>
         </main>
-      </>
+      </div>
     );
   }
 
@@ -174,10 +174,10 @@ export default function RoomPage() {
     const canStart = participants.length >= APP_CONFIG.MIN_PARTICIPANTS;
 
     return (
-      <>
+      <div className="full-height flex flex-col overflow-hidden">
         <Header />
-        <main className="min-h-[calc(100vh-65px)] p-4">
-          <div className="max-w-md mx-auto space-y-6">
+        <main className="flex-1 flex flex-col items-center justify-center p-4 overflow-auto">
+          <div className="max-w-md w-full space-y-6">
             <Card className="fade-in">
               <CardHeader className="text-center">
                 <CardTitle>Комната</CardTitle>
@@ -260,7 +260,7 @@ export default function RoomPage() {
             </Card>
           </div>
         </main>
-      </>
+      </div>
     );
   }
 
@@ -270,13 +270,13 @@ export default function RoomPage() {
     const voteCount = getVoteCount();
 
     return (
-      <>
+      <div className="full-height flex flex-col overflow-hidden">
         <Header />
-        <main className="min-h-[calc(100vh-65px)] p-4">
-          <div className="max-w-md mx-auto space-y-4">
+        <main className="flex-1 flex flex-col p-4 overflow-hidden">
+          <div className="max-w-md mx-auto w-full flex-1 flex flex-col min-h-0">
             {/* Progress */}
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground mb-2">
+            <div className="text-center shrink-0 mb-3">
+              <p className="text-sm text-muted-foreground mb-1">
                 {voteCount}
                 {' '}
                 из
@@ -289,53 +289,55 @@ export default function RoomPage() {
             </div>
 
             {/* Swipe Card */}
-            {loadingMovies
-              ? (
-                  <div className="flex items-center justify-center py-20">
-                    <Spinner size="lg" />
-                  </div>
-                )
-              : currentMovie
+            <div className="flex-1 min-h-0 flex flex-col">
+              {loadingMovies
                 ? (
-                    <SwipeCard movie={currentMovie} onSwipe={dir => void handleSwipe(dir)} />
+                    <div className="flex-1 flex items-center justify-center">
+                      <Spinner size="lg" />
+                    </div>
                   )
-                : (
-                    <Card>
-                      <CardContent className="text-center py-8">
-                        <p className="text-lg font-medium mb-2">Фильмы закончились!</p>
-                        <p className="text-muted-foreground mb-4">
-                          Вы просмотрели
-                          {' '}
-                          {voteCount}
-                          {' '}
-                          фильмов.
-                          {voteCount < APP_CONFIG.MAX_SWIPES && (
-                            <>
-                              <br />
-                              Попробуйте изменить предпочтения, чтобы получить больше фильмов.
-                            </>
-                          )}
-                        </p>
-                        <Button
-                          className="mt-4"
-                          onClick={() => router.push(ROUTES.RESULTS(roomId))}
-                        >
-                          Посмотреть результаты
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  )}
+                : currentMovie
+                  ? (
+                      <SwipeCard movie={currentMovie} onSwipe={dir => void handleSwipe(dir)} className="flex-1" />
+                    )
+                  : (
+                      <Card className="flex-1 flex flex-col justify-center">
+                        <CardContent className="text-center py-8">
+                          <p className="text-lg font-medium mb-2">Фильмы закончились!</p>
+                          <p className="text-muted-foreground mb-4">
+                            Вы просмотрели
+                            {' '}
+                            {voteCount}
+                            {' '}
+                            фильмов.
+                            {voteCount < APP_CONFIG.MAX_SWIPES && (
+                              <>
+                                <br />
+                                Попробуйте изменить предпочтения, чтобы получить больше фильмов.
+                              </>
+                            )}
+                          </p>
+                          <Button
+                            className="mt-4"
+                            onClick={() => router.push(ROUTES.RESULTS(roomId))}
+                          >
+                            Посмотреть результаты
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    )}
+            </div>
 
             <Button
               variant="secondary"
-              className="w-full"
+              className="w-full shrink-0 mt-3"
               onClick={() => router.push(ROUTES.RESULTS(roomId))}
             >
               Завершить раньше
             </Button>
           </div>
         </main>
-      </>
+      </div>
     );
   }
 

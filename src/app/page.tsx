@@ -97,10 +97,10 @@ export default function HomePage() {
   };
 
   return (
-    <>
+    <div className="full-height flex flex-col overflow-hidden">
       <Header />
-      <main className="min-h-[calc(100vh-65px)] flex flex-col items-center justify-center p-4">
-        <div className="w-full max-w-md space-y-8">
+      <main className="flex-1 flex flex-col items-center justify-center p-4 overflow-auto">
+        <div className="w-full max-w-md space-y-6">
           {/* Hero */}
           <div className="text-center fade-in">
             <h1 className="text-4xl font-bold gradient-text mb-4 md:text-5xl">
@@ -223,6 +223,6 @@ export default function HomePage() {
                 )}
         </div>
       </main>
-    </>
+    </div>
   );
 }
