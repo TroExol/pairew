@@ -1,0 +1,123 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* Основная цветовая палитра */
+  --color-background: #0a0a0f;
+  --color-foreground: #fafafa;
+
+  --color-primary: #6366f1;
+  --color-primary-hover: #818cf8;
+  --color-primary-foreground: #ffffff;
+
+  --color-secondary: #1e1e2e;
+  --color-secondary-hover: #2a2a3e;
+  --color-secondary-foreground: #e4e4e7;
+
+  --color-accent: #f43f5e;
+  --color-accent-hover: #fb7185;
+  --color-accent-foreground: #ffffff;
+
+  --color-muted: #27272a;
+  --color-muted-foreground: #a1a1aa;
+
+  --color-card: #18181b;
+  --color-card-foreground: #fafafa;
+
+  --color-border: #27272a;
+  --color-input: #27272a;
+  --color-ring: #6366f1;
+
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+
+  /* Радиусы скругления */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-full: 9999px;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Скроллбар */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-muted;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/30 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/50;
+  }
+}
+
+@layer utilities {
+  /* Анимации для свайп-карт */
+  .swipe-card {
+    @apply transition-transform duration-300 ease-out;
+  }
+
+  .swipe-left {
+    animation: swipeLeft 0.3s ease-out forwards;
+  }
+
+  .swipe-right {
+    animation: swipeRight 0.3s ease-out forwards;
+  }
+
+  @keyframes swipeLeft {
+    to {
+      transform: translateX(-150%) rotate(-20deg);
+      opacity: 0;
+    }
+  }
+
+  @keyframes swipeRight {
+    to {
+      transform: translateX(150%) rotate(20deg);
+      opacity: 0;
+    }
+  }
+
+  /* Появление элементов */
+  .fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Градиентный текст */
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
+  }
+}
+
