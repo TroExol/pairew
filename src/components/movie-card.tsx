@@ -47,7 +47,7 @@ export function MovieCard({ movie, className }: MovieCardProps) {
               </div>
             )}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-          <h3 className="text-lg font-semibold text-white line-clamp-2">
+          <h3 className="text-lg font-semibold text-white">
             {movie.title}
           </h3>
           <div className="mt-1 flex items-center gap-2">
@@ -64,7 +64,7 @@ export function MovieCard({ movie, className }: MovieCardProps) {
         </div>
       </div>
       <div className="p-4">
-        <p className="text-sm text-muted-foreground line-clamp-3">
+        <p className="text-sm text-muted-foreground">
           {movie.overview || 'Описание отсутствует'}
         </p>
       </div>
@@ -121,7 +121,7 @@ export function SwipeCard({ movie, onSwipe, className }: SwipeCardProps) {
               </span>
             </div>
           </div>
-          <p className="text-sm text-white/80 line-clamp-3">
+          <p className="text-sm text-white/80">
             {movie.overview || 'Описание отсутствует'}
           </p>
         </div>

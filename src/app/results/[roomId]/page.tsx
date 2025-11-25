@@ -335,7 +335,7 @@ function MovieResult({ movie, totalParticipants, highlight }: MovieResultProps) 
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <h3 className="font-semibold line-clamp-1">{details?.title || `Фильм #${movie.movie_id}`}</h3>
+        <h3 className="font-semibold">{details?.title || `Фильм #${movie.movie_id}`}</h3>
         {details && (
           <>
             <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
@@ -350,7 +350,7 @@ function MovieResult({ movie, totalParticipants, highlight }: MovieResultProps) 
                 <span>{details.vote_average.toFixed(1)}</span>
               </div>
             </div>
-            <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+            <p className="text-sm text-muted-foreground mt-2">
               {details.overview}
             </p>
           </>
