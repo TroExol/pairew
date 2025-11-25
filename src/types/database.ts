@@ -68,18 +68,21 @@ export interface Database {
           room_id: string;
           user_id: string;
           joined_at: string;
+          finished_at: string | null;
         };
         Insert: {
           id?: string;
           room_id: string;
           user_id: string;
           joined_at?: string;
+          finished_at?: string | null;
         };
         Update: {
           id?: string;
           room_id?: string;
           user_id?: string;
           joined_at?: string;
+          finished_at?: string | null;
         };
       };
       votes: {

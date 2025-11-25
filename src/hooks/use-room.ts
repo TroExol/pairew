@@ -27,6 +27,7 @@ interface UseRoomReturn {
   leaveRoom: () => Promise<void>;
   startVoting: () => Promise<void>;
   finishVoting: () => Promise<void>;
+  markVotingFinished: () => Promise<void>;
 }
 
 export function useRoom(roomId?: string): UseRoomReturn {
@@ -219,6 +220,16 @@ export function useRoom(roomId?: string): UseRoomReturn {
       .eq('id', room.id);
   }, [room, supabase]);
 
+  const markVotingFinished = useCallback(async () => {
+    if (!room || !user) return;
+
+    await supabase
+      .from('room_participants')
+      .update({ finished_at: new Date().toISOString() })
+      .eq('room_id', room.id)
+      .eq('user_id', user.id);
+  }, [room, user, supabase]);
+
   return {
     room,
     participants,
@@ -229,6 +240,7 @@ export function useRoom(roomId?: string): UseRoomReturn {
     leaveRoom,
     startVoting,
     finishVoting,
+    markVotingFinished,
   };
 }
 

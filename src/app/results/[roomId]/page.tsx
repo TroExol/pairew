@@ -56,9 +56,16 @@ export default function ResultsPage() {
   const roomId = params.roomId as string;
 
   const { user } = useAuth();
-  const { room, participants, finishVoting } = useRoom(roomId);
+  const { room, participants, finishVoting, markVotingFinished } = useRoom(roomId);
   const { results, loading: resultsLoading, votingProgress } = useRoomResults(roomId);
   const { addToast } = useToast();
+
+  // Отмечаем текущего пользователя как завершившего голосование при входе на страницу результатов
+  useEffect(() => {
+    if (user && room) {
+      void markVotingFinished();
+    }
+  }, [user, room, markVotingFinished]);
 
   const [matches, setMatches] = useState<MovieWithDetails[]>([]);
   const [partial, setPartial] = useState<MovieWithDetails[]>([]);

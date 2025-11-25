@@ -12,7 +12,6 @@ import {
 import type { Database } from '@/types/database';
 
 import { createClient } from '@/lib/supabase/client';
-import { APP_CONFIG } from '@/lib/constants';
 
 export interface VotingProgress {
   participantCount: number;
@@ -61,10 +60,10 @@ export function useRoomResults(roomId: string | undefined): RoomResultsReturn {
       .select('*')
       .eq('room_id', roomId);
 
-    // Получаем количество участников
+    // Получаем количество участников (включая поле finished_at)
     const { data: participants } = await supabase
       .from('room_participants')
-      .select('user_id')
+      .select('user_id, finished_at')
       .eq('room_id', roomId);
 
     if (!allVotes || !participants) {
@@ -96,13 +95,10 @@ export function useRoomResults(roomId: string | undefined): RoomResultsReturn {
       userVoteCounts.set(v.user_id, currentCount + 1);
     });
 
-    // Считаем сколько участников завершили голосование (достигли MAX_SWIPES)
-    let finishedCount = 0;
-    userVoteCounts.forEach(count => {
-      if (count >= APP_CONFIG.MAX_SWIPES) {
-        finishedCount++;
-      }
-    });
+    // Считаем сколько участников завершили голосование (по полю finished_at)
+    const finishedCount = participants.filter(
+      (p: { user_id: string; finished_at: string | null }) => p.finished_at !== null,
+    ).length;
 
     const allFinished = finishedCount === participantCount;
 
@@ -154,7 +150,7 @@ export function useRoomResults(roomId: string | undefined): RoomResultsReturn {
 
     const { data: participants } = await supabase
       .from('room_participants')
-      .select('user_id')
+      .select('user_id, finished_at')
       .eq('room_id', roomId);
 
     if (!allVotes || !participants) return;
@@ -172,13 +168,10 @@ export function useRoomResults(roomId: string | undefined): RoomResultsReturn {
       userVoteCounts.set(v.user_id, currentCount + 1);
     });
 
-    // Считаем сколько участников завершили голосование
-    let finishedCount = 0;
-    userVoteCounts.forEach(count => {
-      if (count >= APP_CONFIG.MAX_SWIPES) {
-        finishedCount++;
-      }
-    });
+    // Считаем сколько участников завершили голосование (по полю finished_at)
+    const finishedCount = participants.filter(
+      (p: { user_id: string; finished_at: string | null }) => p.finished_at !== null,
+    ).length;
 
     // Обновляем прогресс голосования для отображения в UI
     const allFinished = finishedCount === participants.length;
@@ -200,7 +193,7 @@ export function useRoomResults(roomId: string | undefined): RoomResultsReturn {
     void fetchResults();
   }, [fetchResults]);
 
-  // Realtime подписка на изменения голосов
+  // Realtime подписка на изменения голосов и участников
   useEffect(() => {
     if (!roomId) return;
 
@@ -219,6 +212,19 @@ export function useRoomResults(roomId: string | undefined): RoomResultsReturn {
           },
           () => {
             // Проверяем прогресс и обновляем результаты только если кто-то завершил
+            void checkProgressAndMaybeRefetch();
+          },
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'room_participants',
+            filter: `room_id=eq.${roomId}`,
+          },
+          () => {
+            // Обновляем прогресс когда участник отмечается как завершивший
             void checkProgressAndMaybeRefetch();
           },
         )

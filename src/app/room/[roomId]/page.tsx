@@ -42,7 +42,7 @@ export default function RoomPage() {
   const roomId = params.roomId as string;
 
   const { user } = useAuth();
-  const { room, participants, loading: roomLoading, startVoting, leaveRoom } = useRoom(roomId);
+  const { room, participants, loading: roomLoading, startVoting, leaveRoom, markVotingFinished } = useRoom(roomId);
   const { vote, getVoteCount } = useVotes(roomId, user?.id);
   const { addToast } = useToast();
 
@@ -112,7 +112,8 @@ export default function RoomPage() {
       const newVoteCount = getVoteCount() + 1;
 
       if (newVoteCount >= APP_CONFIG.MAX_SWIPES) {
-        // Достигли максимума свайпов - переходим к результатам
+        // Достигли максимума свайпов - отмечаем завершение и переходим к результатам
+        await markVotingFinished();
         router.push(ROUTES.RESULTS(roomId));
       } else if (currentIndex >= movies.length - 1) {
         // Фильмы закончились, но ещё не достигли лимита - показываем сообщение
@@ -132,6 +133,16 @@ export default function RoomPage() {
   const handleLeave = async () => {
     await leaveRoom();
     router.push('/');
+  };
+
+  const handleViewResults = async () => {
+    await markVotingFinished();
+    router.push(ROUTES.RESULTS(roomId));
+  };
+
+  const handleComplete = async () => {
+    await markVotingFinished();
+    router.push(ROUTES.RESULTS(roomId));
   };
 
   if (roomLoading) {
@@ -319,7 +330,7 @@ export default function RoomPage() {
                           </p>
                           <Button
                             className="mt-4"
-                            onClick={() => router.push(ROUTES.RESULTS(roomId))}
+                            onClick={() => void handleViewResults()}
                           >
                             Посмотреть результаты
                           </Button>
@@ -331,7 +342,7 @@ export default function RoomPage() {
             <Button
               variant="secondary"
               className="w-full shrink-0 mt-3"
-              onClick={() => router.push(ROUTES.RESULTS(roomId))}
+              onClick={() => void handleComplete()}
             >
               Завершить раньше
             </Button>
