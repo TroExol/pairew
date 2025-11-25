@@ -131,7 +131,7 @@ export default function ResultsPage() {
     return (
       <>
         <Header />
-        <main className="min-h-[calc(100vh-64px)] flex flex-col items-center justify-center p-4">
+        <main className="min-h-[calc(100vh-65px)] flex flex-col items-center justify-center p-4">
           <Spinner size="lg" />
           <p className="text-muted-foreground mt-4">Подсчитываем результаты...</p>
         </main>
@@ -142,7 +142,7 @@ export default function ResultsPage() {
   return (
     <>
       <Header />
-      <main className="min-h-[calc(100vh-64px)] p-4 pb-20">
+      <main className="min-h-[calc(100vh-65px)] p-4 pb-20">
         <div className="max-w-2xl mx-auto space-y-6">
           {/* Header */}
           <div className="text-center fade-in">

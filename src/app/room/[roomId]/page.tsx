@@ -134,7 +134,7 @@ export default function RoomPage() {
     return (
       <>
         <Header />
-        <main className="min-h-[calc(100vh-64px)] flex items-center justify-center">
+        <main className="min-h-[calc(100vh-65px)] flex items-center justify-center">
           <Spinner size="lg" />
         </main>
       </>
@@ -145,7 +145,7 @@ export default function RoomPage() {
     return (
       <>
         <Header />
-        <main className="min-h-[calc(100vh-64px)] flex items-center justify-center p-4">
+        <main className="min-h-[calc(100vh-65px)] flex items-center justify-center p-4">
           <Card className="max-w-md w-full">
             <CardHeader className="text-center">
               <CardTitle>Комната не найдена</CardTitle>
@@ -172,7 +172,7 @@ export default function RoomPage() {
     return (
       <>
         <Header />
-        <main className="min-h-[calc(100vh-64px)] p-4">
+        <main className="min-h-[calc(100vh-65px)] p-4">
           <div className="max-w-md mx-auto space-y-6">
             <Card className="fade-in">
               <CardHeader className="text-center">
@@ -268,7 +268,7 @@ export default function RoomPage() {
     return (
       <>
         <Header />
-        <main className="min-h-[calc(100vh-64px)] p-4">
+        <main className="min-h-[calc(100vh-65px)] p-4">
           <div className="max-w-md mx-auto space-y-4">
             {/* Progress */}
             <div className="text-center">

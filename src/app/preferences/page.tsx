@@ -140,7 +140,7 @@ export default function PreferencesPage() {
     return (
       <>
         <Header />
-        <main className="min-h-[calc(100vh-64px)] flex items-center justify-center">
+        <main className="min-h-[calc(100vh-65px)] flex items-center justify-center">
           <Spinner size="lg" />
         </main>
       </>
@@ -150,7 +150,7 @@ export default function PreferencesPage() {
   return (
     <>
       <Header />
-      <main className="min-h-[calc(100vh-64px)] p-4">
+      <main className="min-h-[calc(100vh-65px)] p-4">
         <div className="max-w-2xl mx-auto">
           {/* Progress */}
           <div className="flex items-center justify-center gap-2 mb-8">

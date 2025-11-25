@@ -99,7 +99,7 @@ export default function HomePage() {
   return (
     <>
       <Header />
-      <main className="min-h-[calc(100vh-64px)] flex flex-col items-center justify-center p-4">
+      <main className="min-h-[calc(100vh-65px)] flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-md space-y-8">
           {/* Hero */}
           <div className="text-center fade-in">
