@@ -1,15 +1,16 @@
 'use client';
 
-import type { TmdbGenre, TmdbPerson } from '@/types/tmdb';
-
-import { useRouter } from 'next/navigation';
 import {
   useCallback,
   useEffect,
   useState,
 } from 'react';
+import { useRouter } from 'next/navigation';
 import { Check } from 'lucide-react';
 
+import type { TmdbGenre, TmdbPerson } from '@/types/tmdb';
+
+import { useAuth, usePreferences } from '@/hooks';
 import {
   Button,
   Card,
@@ -23,7 +24,6 @@ import {
   useToast,
 } from '@/components/ui';
 import { Header } from '@/components';
-import { useAuth, usePreferences } from '@/hooks';
 
 export default function PreferencesPage() {
   const { user, loading: authLoading } = useAuth();
@@ -157,8 +157,7 @@ export default function PreferencesPage() {
             {[1, 2, 3].map(s => (
               <div
                 key={s}
-                className={`h-2 w-16 rounded-full transition-colors ${
-                  s <= step ? 'bg-primary' : 'bg-secondary'
+                className={`h-2 w-16 rounded-full transition-colors ${s <= step ? 'bg-primary' : 'bg-secondary'
                 }`}
               />
             ))}
@@ -261,7 +260,9 @@ export default function PreferencesPage() {
                           selected
                           onClick={() => removePerson(actor.id, 'actor')}
                         >
-                          {actor.name} ×
+                          {actor.name}
+                          {' '}
+                          ×
                         </Chip>
                       ))}
                     </div>
@@ -278,7 +279,9 @@ export default function PreferencesPage() {
                           selected
                           onClick={() => removePerson(director.id, 'director')}
                         >
-                          {director.name} ×
+                          {director.name}
+                          {' '}
+                          ×
                         </Chip>
                       ))}
                     </div>
@@ -338,7 +341,7 @@ export default function PreferencesPage() {
                   <Button variant="secondary" onClick={() => setStep(2)} className="flex-1">
                     Назад
                   </Button>
-                  <Button onClick={handleSave} disabled={saving} className="flex-1">
+                  <Button onClick={() => void handleSave()} disabled={saving} className="flex-1">
                     {saving ? <Spinner size="sm" /> : 'Готово!'}
                   </Button>
                 </div>

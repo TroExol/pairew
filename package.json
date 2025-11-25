@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "prepare": "husky"
+    "postinstall": "husky"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",

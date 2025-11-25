@@ -19,4 +19,3 @@ export { Progress } from './progress';
 export { Spinner } from './spinner';
 export { ToastProvider, useToast } from './toast';
 export type { Toast } from './toast';
-

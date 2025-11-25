@@ -1,9 +1,14 @@
 'use client';
 
-import type { Database } from '@/types/database';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
-import { useCallback, useEffect, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
+
+import type { Database } from '@/types/database';
 
 import { createClient } from '@/lib/supabase/client';
 
@@ -20,10 +25,6 @@ interface UseRoomReturn {
   leaveRoom: () => Promise<void>;
   startVoting: () => Promise<void>;
   finishVoting: () => Promise<void>;
-}
-
-function generateRoomCode(): string {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
 export function useRoom(roomId?: string): UseRoomReturn {
@@ -47,7 +48,7 @@ export function useRoom(roomId?: string): UseRoomReturn {
           .from('rooms')
           .select('*')
           .eq('id', roomId)
-          .single();
+          .single<Room>();
 
         if (roomError) throw roomError;
         setRoom(roomData);
@@ -55,7 +56,8 @@ export function useRoom(roomId?: string): UseRoomReturn {
         const { data: participantsData, error: participantsError } = await supabase
           .from('room_participants')
           .select('*')
-          .eq('room_id', roomId);
+          .eq('room_id', roomId)
+          .returns<RoomParticipant[]>();
 
         if (participantsError) throw participantsError;
         setParticipants(participantsData ?? []);
@@ -86,13 +88,16 @@ export function useRoom(roomId?: string): UseRoomReturn {
             table: 'room_participants',
             filter: `room_id=eq.${roomId}`,
           },
-          async () => {
-            const { data } = await supabase
-              .from('room_participants')
-              .select('*')
-              .eq('room_id', roomId);
+          () => {
+            void (async () => {
+              const { data } = await supabase
+                .from('room_participants')
+                .select('*')
+                .eq('room_id', roomId)
+                .returns<RoomParticipant[]>();
 
-            setParticipants(data ?? []);
+              setParticipants(data ?? []);
+            })();
           },
         )
         .on(
@@ -133,9 +138,10 @@ export function useRoom(roomId?: string): UseRoomReturn {
         status: 'waiting',
       })
       .select()
-      .single();
+      .single<Room>();
 
     if (createError) throw createError;
+    if (!newRoom) throw new Error('Failed to create room');
 
     // Добавляем создателя как участника
     await supabase.from('room_participants').insert({
@@ -155,7 +161,7 @@ export function useRoom(roomId?: string): UseRoomReturn {
       .from('rooms')
       .select('*')
       .eq('code', code.toUpperCase())
-      .single();
+      .single<Room>();
 
     if (findError || !foundRoom) {
       throw new Error('Комната не найдена');
@@ -171,7 +177,7 @@ export function useRoom(roomId?: string): UseRoomReturn {
       .select('id')
       .eq('room_id', foundRoom.id)
       .eq('user_id', user.id)
-      .single();
+      .single<{ id: string }>();
 
     if (!existingParticipant) {
       await supabase.from('room_participants').insert({
@@ -231,3 +237,6 @@ export function useRoom(roomId?: string): UseRoomReturn {
   };
 }
 
+function generateRoomCode(): string {
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
+}

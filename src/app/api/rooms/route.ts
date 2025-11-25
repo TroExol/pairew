@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 
+import type { Database } from '@/types/database';
+
 import { createClient } from '@/lib/supabase/server';
+
+type Room = Database['public']['Tables']['rooms']['Row'];
 
 // Получить список комнат пользователя
 export async function GET() {
@@ -21,7 +25,7 @@ export async function GET() {
     return NextResponse.json({ error: partError.message }, { status: 500 });
   }
 
-  const roomIds = participations?.map(p => p.room_id) ?? [];
+  const roomIds = (participations ?? []).map((p: { room_id: string }) => p.room_id);
 
   if (roomIds.length === 0) {
     return NextResponse.json([]);
@@ -31,7 +35,8 @@ export async function GET() {
     .from('rooms')
     .select('*')
     .in('id', roomIds)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .returns<Room[]>();
 
   if (roomsError) {
     return NextResponse.json({ error: roomsError.message }, { status: 500 });
@@ -39,7 +44,7 @@ export async function GET() {
 
   // Получаем количество участников для каждой комнаты
   const roomsWithCounts = await Promise.all(
-    (rooms ?? []).map(async room => {
+    (rooms ?? []).map(async (room: Room) => {
       const { count } = await supabase
         .from('room_participants')
         .select('*', { count: 'exact', head: true })
@@ -54,4 +59,3 @@ export async function GET() {
 
   return NextResponse.json(roomsWithCounts);
 }
-

@@ -1,10 +1,11 @@
 'use client';
 
-import type { Database } from '@/types/database';
-
 import { useEffect, useState } from 'react';
 import { Film } from 'lucide-react';
 
+import type { Database } from '@/types/database';
+
+import { useAuth } from '@/hooks';
 import {
   Card,
   CardContent,
@@ -14,7 +15,6 @@ import {
   Spinner,
 } from '@/components/ui';
 import { Header, RoomCard } from '@/components';
-import { useAuth } from '@/hooks';
 
 type RoomWithCount = Database['public']['Tables']['rooms']['Row'] & {
   participant_count: number;
@@ -69,37 +69,39 @@ export default function HistoryPage() {
             </p>
           </div>
 
-          {rooms.length > 0 ? (
-            <div className="space-y-4">
-              {rooms.map(room => (
-                <RoomCard
-                  key={room.id}
-                  room={room}
-                  participantCount={room.participant_count}
-                />
-              ))}
-            </div>
-          ) : (
-            <Card>
-              <CardHeader className="text-center">
-                <Film className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
-                <CardTitle>Пока пусто</CardTitle>
-                <CardDescription>
-                  Создайте первую комнату и пригласите друзей!
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <a href="/" className="block">
-                  <button
-                    type="button"
-                    className="w-full bg-primary hover:bg-primary-hover text-primary-foreground px-6 py-3 rounded-xl font-medium transition-colors"
-                  >
-                    Создать комнату
-                  </button>
-                </a>
-              </CardContent>
-            </Card>
-          )}
+          {rooms.length > 0
+            ? (
+                <div className="space-y-4">
+                  {rooms.map(room => (
+                    <RoomCard
+                      key={room.id}
+                      room={room}
+                      participantCount={room.participant_count}
+                    />
+                  ))}
+                </div>
+              )
+            : (
+                <Card>
+                  <CardHeader className="text-center">
+                    <Film className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
+                    <CardTitle>Пока пусто</CardTitle>
+                    <CardDescription>
+                      Создайте первую комнату и пригласите друзей!
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <a href="/" className="block">
+                      <button
+                        type="button"
+                        className="w-full bg-primary hover:bg-primary-hover text-primary-foreground px-6 py-3 rounded-xl font-medium transition-colors"
+                      >
+                        Создать комнату
+                      </button>
+                    </a>
+                  </CardContent>
+                </Card>
+              )}
         </div>
       </main>
     </>

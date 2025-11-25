@@ -24,9 +24,10 @@ Avatar.displayName = 'Avatar';
 const AvatarImage = React.forwardRef<
   ElementRef<'img'>,
   ComponentPropsWithoutRef<'img'>
->(({ className, ...props }, ref) => (
+>(({ className, alt = '', ...props }, ref) => (
   <img
     ref={ref}
+    alt={alt}
     className={cn('aspect-square h-full w-full', className)}
     {...props}
   />
@@ -49,4 +50,3 @@ const AvatarFallback = React.forwardRef<
 AvatarFallback.displayName = 'AvatarFallback';
 
 export { Avatar, AvatarFallback, AvatarImage };
-

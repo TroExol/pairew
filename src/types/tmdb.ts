@@ -1,3 +1,8 @@
+export interface TmdbGenre {
+  id: number;
+  name: string;
+}
+
 export interface TmdbMovie {
   id: number;
   title: string;
@@ -14,18 +19,6 @@ export interface TmdbMovie {
   original_language: string;
 }
 
-export interface TmdbGenre {
-  id: number;
-  name: string;
-}
-
-export interface TmdbPerson {
-  id: number;
-  name: string;
-  profile_path: string | null;
-  known_for_department: string;
-}
-
 export interface TmdbMovieDetails extends TmdbMovie {
   genres: TmdbGenre[];
   runtime: number;
@@ -39,10 +32,16 @@ export interface TmdbMovieDetails extends TmdbMovie {
   }>;
 }
 
+export interface TmdbPerson {
+  id: number;
+  name: string;
+  profile_path: string | null;
+  known_for_department: string;
+}
+
 export interface TmdbSearchResponse<T> {
   page: number;
   results: T[];
   total_pages: number;
   total_results: number;
 }
-

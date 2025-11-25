@@ -10,4 +10,3 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.redirect(new URL('/', request.url));
 }
-

@@ -37,4 +37,3 @@ export async function GET(request: NextRequest) {
   // Ошибка авторизации — возвращаем на страницу входа
   return NextResponse.redirect(`${origin}/auth/login?error=auth_failed`);
 }
-

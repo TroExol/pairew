@@ -2,8 +2,12 @@ import type { NextRequest } from 'next/server';
 
 import { NextResponse } from 'next/server';
 
+import type { Database } from '@/types/database';
+
 import { tmdbClient } from '@/lib/tmdb/client';
 import { createClient } from '@/lib/supabase/server';
+
+type Preferences = Database['public']['Tables']['preferences']['Row'];
 
 // Получить фильмы для комнаты на основе предпочтений участников
 export async function GET(request: NextRequest) {
@@ -27,18 +31,20 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'No participants found' }, { status: 404 });
   }
 
-  const userIds = participants.map(p => p.user_id);
+  const userIds = participants.map((p: { user_id: string }) => p.user_id);
 
   // Получаем предпочтения всех участников
   const { data: allPreferences } = await supabase
     .from('preferences')
     .select('*')
-    .in('user_id', userIds);
+    .in('user_id', userIds)
+    .returns<Preferences[]>();
 
   // Находим пересечение жанров
-  const genreSets = allPreferences
-    ?.filter(p => p.genres?.length)
-    .map(p => new Set(p.genres)) ?? [];
+  const prefsWithGenres = (allPreferences ?? []).filter(
+    (p: Preferences) => Array.isArray(p.genres) && p.genres.length > 0,
+  );
+  const genreSets = prefsWithGenres.map((p: Preferences) => new Set(p.genres));
 
   let commonGenres: number[] = [];
   if (genreSets.length > 0) {
@@ -55,12 +61,12 @@ export async function GET(request: NextRequest) {
   }
 
   // Находим диапазон годов
-  const yearFromValues = allPreferences
-    ?.filter(p => p.year_from !== null)
-    .map(p => p.year_from!) ?? [];
-  const yearToValues = allPreferences
-    ?.filter(p => p.year_to !== null)
-    .map(p => p.year_to!) ?? [];
+  const yearFromValues = (allPreferences ?? [])
+    .filter((p): p is Preferences & { year_from: number } => p.year_from !== null)
+    .map(p => p.year_from);
+  const yearToValues = (allPreferences ?? [])
+    .filter((p): p is Preferences & { year_to: number } => p.year_to !== null)
+    .map(p => p.year_to);
 
   const yearFrom = yearFromValues.length > 0 ? Math.max(...yearFromValues) : undefined;
   const yearTo = yearToValues.length > 0 ? Math.min(...yearToValues) : undefined;
@@ -83,4 +89,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-

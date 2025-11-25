@@ -1,13 +1,15 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Copy,
   Plus,
   Users,
 } from 'lucide-react';
 
+import { ROUTES } from '@/lib/constants';
+import { useAuth, useRoom } from '@/hooks';
 import {
   Button,
   Card,
@@ -20,8 +22,6 @@ import {
   useToast,
 } from '@/components/ui';
 import { Header } from '@/components';
-import { useAuth, useRoom } from '@/hooks';
-import { ROUTES } from '@/lib/constants';
 
 export default function HomePage() {
   const { user, loading: authLoading } = useAuth();
@@ -114,104 +114,113 @@ export default function HomePage() {
             </p>
           </div>
 
-          {authLoading ? (
-            <div className="flex justify-center py-8">
-              <Spinner size="lg" />
-            </div>
-          ) : createdCode ? (
-            // Показываем созданный код
-            <Card className="fade-in">
-              <CardHeader className="text-center">
-                <CardTitle>Комната создана!</CardTitle>
-                <CardDescription>
-                  Поделитесь кодом с друзьями
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-center gap-2 p-4 bg-secondary rounded-xl">
-                  <span className="text-3xl font-mono font-bold tracking-wider">
-                    {createdCode}
-                  </span>
-                  <Button variant="ghost" size="icon" onClick={handleCopyCode}>
-                    <Copy className="h-5 w-5" />
-                  </Button>
+          {authLoading
+            ? (
+                <div className="flex justify-center py-8">
+                  <Spinner size="lg" />
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="secondary"
-                    className="flex-1"
-                    onClick={() => setCreatedCode('')}
-                  >
-                    Назад
-                  </Button>
-                  <Button className="flex-1" onClick={handleGoToRoom}>
-                    Войти в комнату
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            // Основной интерфейс
-            <div className="space-y-4 fade-in">
-              {/* Создать комнату */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Plus className="h-5 w-5" />
-                    Создать комнату
-                  </CardTitle>
-                  <CardDescription>
-                    Создайте новую комнату и пригласите друзей
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button
-                    className="w-full"
-                    onClick={handleCreateRoom}
-                    disabled={loading}
-                  >
-                    {loading ? <Spinner size="sm" /> : 'Создать комнату'}
-                  </Button>
-                </CardContent>
-              </Card>
+              )
+            : createdCode
+              ? (
+                // Показываем созданный код
+                  <Card className="fade-in">
+                    <CardHeader className="text-center">
+                      <CardTitle>Комната создана!</CardTitle>
+                      <CardDescription>
+                        Поделитесь кодом с друзьями
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center justify-center gap-2 p-4 bg-secondary rounded-xl">
+                        <span className="text-3xl font-mono font-bold tracking-wider">
+                          {createdCode}
+                        </span>
+                        <Button variant="ghost" size="icon" onClick={() => void handleCopyCode()}>
+                          <Copy className="h-5 w-5" />
+                        </Button>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="secondary"
+                          className="flex-1"
+                          onClick={() => setCreatedCode('')}
+                        >
+                          Назад
+                        </Button>
+                        <Button className="flex-1" onClick={() => void handleGoToRoom()}>
+                          Войти в комнату
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              : (
+                // Основной интерфейс
+                  <div className="space-y-4 fade-in">
+                    {/* Создать комнату */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Plus className="h-5 w-5" />
+                          Создать комнату
+                        </CardTitle>
+                        <CardDescription>
+                          Создайте новую комнату и пригласите друзей
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <Button
+                          className="w-full"
+                          onClick={() => void handleCreateRoom()}
+                          disabled={loading}
+                        >
+                          {loading
+                            ? <Spinner size="sm" />
+                            : 'Создать комнату'}
+                        </Button>
+                      </CardContent>
+                    </Card>
 
-              {/* Войти в комнату */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    Войти в комнату
-                  </CardTitle>
-                  <CardDescription>
-                    Введите код комнаты от друга
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleJoinRoom} className="flex gap-2">
-                    <Input
-                      placeholder="Код комнаты"
-                      value={roomCode}
-                      onChange={e => setRoomCode(e.target.value.toUpperCase())}
-                      className="font-mono uppercase"
-                      maxLength={6}
-                    />
-                    <Button type="submit" disabled={loading || !roomCode.trim()}>
-                      {loading ? <Spinner size="sm" /> : 'Войти'}
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
+                    {/* Войти в комнату */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Users className="h-5 w-5" />
+                          Войти в комнату
+                        </CardTitle>
+                        <CardDescription>
+                          Введите код комнаты от друга
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <form onSubmit={e => void handleJoinRoom(e)} className="flex gap-2">
+                          <Input
+                            placeholder="Код комнаты"
+                            value={roomCode}
+                            onChange={e => setRoomCode(e.target.value.toUpperCase())}
+                            className="font-mono uppercase"
+                            maxLength={6}
+                          />
+                          <Button type="submit" disabled={loading || !roomCode.trim()}>
+                            {loading
+                              ? <Spinner size="sm" />
+                              : 'Войти'}
+                          </Button>
+                        </form>
+                      </CardContent>
+                    </Card>
 
-              {!user && (
-                <p className="text-center text-sm text-muted-foreground">
-                  Для создания или входа в комнату необходимо{' '}
-                  <a href={ROUTES.AUTH.LOGIN} className="text-primary hover:underline">
-                    войти в аккаунт
-                  </a>
-                </p>
-              )}
-            </div>
-          )}
+                    {!user && (
+                      <p className="text-center text-sm text-muted-foreground">
+                        Для создания или входа в комнату необходимо
+                        {' '}
+                        <a href={ROUTES.AUTH.LOGIN} className="text-primary hover:underline">
+                          войти в аккаунт
+                        </a>
+                      </p>
+                    )}
+                  </div>
+                )}
         </div>
       </main>
     </>

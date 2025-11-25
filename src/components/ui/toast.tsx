@@ -3,7 +3,6 @@
 import type { ReactNode } from 'react';
 import type { VariantProps } from 'class-variance-authority';
 
-import { X } from 'lucide-react';
 import {
   createContext,
   useCallback,
@@ -11,6 +10,7 @@ import {
   useMemo,
   useState,
 } from 'react';
+import { X } from 'lucide-react';
 import { cva } from 'class-variance-authority';
 
 import { cn } from '@/lib/utils';
@@ -112,4 +112,3 @@ function ToastContainer() {
     </div>
   );
 }
-

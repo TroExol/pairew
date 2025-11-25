@@ -1,19 +1,25 @@
 'use client';
 
-import type { TmdbMovie } from '@/types/tmdb';
-
-import { useParams, useRouter } from 'next/navigation';
 import {
   useCallback,
   useEffect,
   useState,
 } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import {
   Check,
   Copy,
   Users,
 } from 'lucide-react';
 
+import type { TmdbMovie } from '@/types/tmdb';
+
+import { APP_CONFIG, ROUTES } from '@/lib/constants';
+import {
+  useAuth,
+  useRoom,
+  useVotes,
+} from '@/hooks';
 import {
   Avatar,
   AvatarFallback,
@@ -29,8 +35,6 @@ import {
   useToast,
 } from '@/components/ui';
 import { Header, SwipeCard } from '@/components';
-import { useAuth, useRoom, useVotes } from '@/hooks';
-import { APP_CONFIG, ROUTES } from '@/lib/constants';
 
 export default function RoomPage() {
   const params = useParams();
@@ -39,7 +43,7 @@ export default function RoomPage() {
 
   const { user } = useAuth();
   const { room, participants, loading: roomLoading, startVoting, leaveRoom } = useRoom(roomId);
-  const { votes, vote, getVoteCount } = useVotes(roomId, user?.id);
+  const { vote, getVoteCount } = useVotes(roomId, user?.id);
   const { addToast } = useToast();
 
   const [movies, setMovies] = useState<TmdbMovie[]>([]);
@@ -177,7 +181,7 @@ export default function RoomPage() {
                   <span className="text-3xl font-mono font-bold tracking-wider">
                     {room.code}
                   </span>
-                  <Button variant="ghost" size="icon" onClick={handleCopyCode}>
+                  <Button variant="ghost" size="icon" onClick={() => void handleCopyCode()}>
                     <Copy className="h-5 w-5" />
                   </Button>
                 </div>
@@ -191,7 +195,9 @@ export default function RoomPage() {
                   <div className="flex items-center gap-2 mb-3">
                     <Users className="h-5 w-5 text-muted-foreground" />
                     <span className="text-sm text-muted-foreground">
-                      Участники ({participants.length})
+                      Участники (
+                      {participants.length}
+                      )
                     </span>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -215,30 +221,34 @@ export default function RoomPage() {
 
                 {/* Действия */}
                 <div className="space-y-2 pt-4">
-                  {isCreator ? (
-                    <Button
-                      className="w-full"
-                      onClick={handleStartVoting}
-                      disabled={!canStart}
-                    >
-                      {canStart ? (
-                        <>
-                          <Check className="h-4 w-4 mr-2" />
-                          Начать голосование
-                        </>
-                      ) : (
-                        `Нужно минимум ${APP_CONFIG.MIN_PARTICIPANTS} участника`
+                  {isCreator
+                    ? (
+                        <Button
+                          className="w-full"
+                          onClick={() => void handleStartVoting()}
+                          disabled={!canStart}
+                        >
+                          {canStart
+                            ? (
+                                <>
+                                  <Check className="h-4 w-4 mr-2" />
+                                  Начать голосование
+                                </>
+                              )
+                            : (
+                                `Нужно минимум ${APP_CONFIG.MIN_PARTICIPANTS} участника`
+                              )}
+                        </Button>
+                      )
+                    : (
+                        <div className="text-center py-4">
+                          <Spinner className="mx-auto mb-2" />
+                          <p className="text-sm text-muted-foreground">
+                            Ожидание начала голосования...
+                          </p>
+                        </div>
                       )}
-                    </Button>
-                  ) : (
-                    <div className="text-center py-4">
-                      <Spinner className="mx-auto mb-2" />
-                      <p className="text-sm text-muted-foreground">
-                        Ожидание начала голосования...
-                      </p>
-                    </div>
-                  )}
-                  <Button variant="secondary" className="w-full" onClick={handleLeave}>
+                  <Button variant="secondary" className="w-full" onClick={() => void handleLeave()}>
                     Покинуть комнату
                   </Button>
                 </div>
@@ -263,31 +273,40 @@ export default function RoomPage() {
             {/* Progress */}
             <div className="text-center">
               <p className="text-sm text-muted-foreground mb-2">
-                {voteCount} из {APP_CONFIG.MAX_SWIPES} фильмов
+                {voteCount}
+                {' '}
+                из
+                {APP_CONFIG.MAX_SWIPES}
+                {' '}
+                фильмов
               </p>
               <Progress value={voteCount} max={APP_CONFIG.MAX_SWIPES} />
             </div>
 
             {/* Swipe Card */}
-            {loadingMovies ? (
-              <div className="flex items-center justify-center py-20">
-                <Spinner size="lg" />
-              </div>
-            ) : currentMovie ? (
-              <SwipeCard movie={currentMovie} onSwipe={handleSwipe} />
-            ) : (
-              <Card>
-                <CardContent className="text-center py-8">
-                  <p className="text-muted-foreground">Фильмы закончились!</p>
-                  <Button
-                    className="mt-4"
-                    onClick={() => router.push(ROUTES.RESULTS(roomId))}
-                  >
-                    Посмотреть результаты
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
+            {loadingMovies
+              ? (
+                  <div className="flex items-center justify-center py-20">
+                    <Spinner size="lg" />
+                  </div>
+                )
+              : currentMovie
+                ? (
+                    <SwipeCard movie={currentMovie} onSwipe={dir => void handleSwipe(dir)} />
+                  )
+                : (
+                    <Card>
+                      <CardContent className="text-center py-8">
+                        <p className="text-muted-foreground">Фильмы закончились!</p>
+                        <Button
+                          className="mt-4"
+                          onClick={() => router.push(ROUTES.RESULTS(roomId))}
+                        >
+                          Посмотреть результаты
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
 
             <Button
               variant="secondary"

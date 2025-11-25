@@ -47,4 +47,3 @@ export const ROUTES = {
   RESULTS: (roomId: string) => `/results/${roomId}`,
   HISTORY: '/history',
 } as const;
-

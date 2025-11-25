@@ -1,12 +1,12 @@
 'use client';
 
-import type { TmdbMovie } from '@/types/tmdb';
-
 import Image from 'next/image';
 import { Star } from 'lucide-react';
 
-import { Badge, Card } from '@/components/ui';
+import type { TmdbMovie } from '@/types/tmdb';
+
 import { cn } from '@/lib/utils';
+import { Badge, Card } from '@/components/ui';
 
 interface MovieCardProps {
   movie: TmdbMovie;
@@ -14,6 +14,10 @@ interface MovieCardProps {
 }
 
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p';
+
+interface SwipeCardProps extends MovieCardProps {
+  onSwipe: (direction: 'left' | 'right') => void;
+}
 
 export function MovieCard({ movie, className }: MovieCardProps) {
   const posterUrl = movie.poster_path
@@ -27,19 +31,21 @@ export function MovieCard({ movie, className }: MovieCardProps) {
   return (
     <Card className={cn('overflow-hidden', className)}>
       <div className="relative aspect-[2/3] bg-muted">
-        {posterUrl ? (
-          <Image
-            src={posterUrl}
-            alt={movie.title}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center text-muted-foreground">
-            Нет постера
-          </div>
-        )}
+        {posterUrl
+          ? (
+              <Image
+                src={posterUrl}
+                alt={movie.title}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              />
+            )
+          : (
+              <div className="flex h-full items-center justify-center text-muted-foreground">
+                Нет постера
+              </div>
+            )}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
           <h3 className="text-lg font-semibold text-white line-clamp-2">
             {movie.title}
@@ -66,10 +72,6 @@ export function MovieCard({ movie, className }: MovieCardProps) {
   );
 }
 
-interface SwipeCardProps extends MovieCardProps {
-  onSwipe: (direction: 'left' | 'right') => void;
-}
-
 export function SwipeCard({ movie, onSwipe, className }: SwipeCardProps) {
   const posterUrl = movie.poster_path
     ? `${TMDB_IMAGE_BASE}/w780${movie.poster_path}`
@@ -87,20 +89,22 @@ export function SwipeCard({ movie, onSwipe, className }: SwipeCardProps) {
       )}
     >
       <div className="relative aspect-[2/3]">
-        {posterUrl ? (
-          <Image
-            src={posterUrl}
-            alt={movie.title}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, 400px"
-            priority
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center bg-muted text-muted-foreground">
-            Нет постера
-          </div>
-        )}
+        {posterUrl
+          ? (
+              <Image
+                src={posterUrl}
+                alt={movie.title}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 400px"
+                priority
+              />
+            )
+          : (
+              <div className="flex h-full items-center justify-center bg-muted text-muted-foreground">
+                Нет постера
+              </div>
+            )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-6">
           <h2 className="text-2xl font-bold text-white mb-2">
@@ -141,4 +145,3 @@ export function SwipeCard({ movie, onSwipe, className }: SwipeCardProps) {
     </div>
   );
 }
-

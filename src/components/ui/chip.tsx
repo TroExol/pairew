@@ -34,4 +34,3 @@ const Chip = forwardRef<HTMLButtonElement, ChipProps>(
 Chip.displayName = 'Chip';
 
 export { Chip };
-

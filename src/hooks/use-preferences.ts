@@ -1,8 +1,12 @@
 'use client';
 
-import type { Database } from '@/types/database';
+import {
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 
-import { useCallback, useEffect, useState } from 'react';
+import type { Database } from '@/types/database';
 
 import { createClient } from '@/lib/supabase/client';
 
@@ -27,7 +31,7 @@ export function usePreferences(userId: string | undefined) {
         .from('preferences')
         .select('*')
         .eq('user_id', userId)
-        .single();
+        .single<Preferences>();
 
       if (fetchError && fetchError.code !== 'PGRST116') {
         throw fetchError;
@@ -57,7 +61,7 @@ export function usePreferences(userId: string | undefined) {
         ...data,
       })
       .select()
-      .single();
+      .single<Preferences>();
 
     if (saveError) {
       throw saveError;
@@ -75,4 +79,3 @@ export function usePreferences(userId: string | undefined) {
     refetch: fetchPreferences,
   };
 }
-

@@ -1,11 +1,11 @@
 import { fileURLToPath } from 'url';
 import tseslint from 'typescript-eslint';
-import reactPlugin from 'eslint-plugin-react';
-import reactHooksPlugin from 'eslint-plugin-react-hooks';
-import jsxA11yPlugin from 'eslint-plugin-jsx-a11y';
 import path from 'path';
 import globals from 'globals';
+import reactHooksPlugin from 'eslint-plugin-react-hooks';
+import reactPlugin from 'eslint-plugin-react';
 import perfectionistPlugin from 'eslint-plugin-perfectionist';
+import jsxA11yPlugin from 'eslint-plugin-jsx-a11y';
 import importNewline from 'eslint-plugin-import-newlines';
 import stylisticPlugin from '@stylistic/eslint-plugin';
 import js from '@eslint/js';
@@ -13,14 +13,17 @@ import js from '@eslint/js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const ignoreFiles = [
-  '.next/**/*',
-  'node_modules/**/*',
-  'dist/**/*',
-  'build/**/*',
-];
-
 export default tseslint.config(
+  // Global ignores - должен быть отдельным объектом с ТОЛЬКО ignores свойством
+  {
+    ignores: [
+      '.next/**',
+      'node_modules/**',
+      'dist/**',
+      'build/**',
+      'next-env.d.ts',
+    ],
+  },
   {
     languageOptions: {
       globals: {
@@ -35,14 +38,13 @@ export default tseslint.config(
         blockSpacing: true,
         braceStyle: '1tbs',
         commaDangle: 'always-multiline',
-        flat: true,
+        // flat: true,
         indent: 2,
         quotes: 'single',
         semi: true,
       }),
     ],
     files: ['**/*.{js,mjs,cjs,ts,mts,jsx,tsx}'],
-    ignores: ignoreFiles,
     plugins: {
       'import-newlines': importNewline,
     },
@@ -93,7 +95,7 @@ export default tseslint.config(
           'unknown',
         ],
         internalPattern: [
-          '@/**',
+          '@/.*',
         ],
         newlinesBetween: 'always',
         order: 'desc',

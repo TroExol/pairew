@@ -1,12 +1,7 @@
 'use client';
 
-import type { TmdbMovieDetails } from '@/types/tmdb';
-
+import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import {
-  useEffect,
-  useState,
-} from 'react';
 import {
   ChevronDown,
   ChevronUp,
@@ -17,6 +12,14 @@ import {
   Users,
 } from 'lucide-react';
 
+import type { TmdbMovieDetails } from '@/types/tmdb';
+
+import { TMDB_CONFIG } from '@/lib/constants';
+import {
+  useAuth,
+  useRoom,
+  useRoomResults,
+} from '@/hooks';
 import {
   Badge,
   Button,
@@ -29,8 +32,12 @@ import {
   useToast,
 } from '@/components/ui';
 import { Header } from '@/components';
-import { useAuth, useRoom, useRoomResults } from '@/hooks';
-import { ROUTES, TMDB_CONFIG } from '@/lib/constants';
+
+interface MovieResultProps {
+  movie: MovieWithDetails;
+  totalParticipants: number;
+  highlight?: boolean;
+}
 
 interface MovieWithDetails {
   movie_id: number;
@@ -44,7 +51,7 @@ export default function ResultsPage() {
   const router = useRouter();
   const roomId = params.roomId as string;
 
-  const { user } = useAuth();
+  useAuth();
   const { room, participants, finishVoting } = useRoom(roomId);
   const { results, loading: resultsLoading } = useRoomResults(roomId);
   const { addToast } = useToast();
@@ -142,45 +149,49 @@ export default function ResultsPage() {
             <h1 className="text-3xl font-bold gradient-text mb-2">Результаты</h1>
             <p className="text-muted-foreground">
               <Users className="inline h-4 w-4 mr-1" />
-              {participants.length} участников
+              {participants.length}
+              {' '}
+              участников
             </p>
           </div>
 
           {/* Полные совпадения */}
-          {matches.length > 0 ? (
-            <Card className="fade-in border-success/50">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-success">
-                  <Star className="h-5 w-5 fill-success" />
-                  Идеальные совпадения!
-                </CardTitle>
-                <CardDescription>
-                  Фильмы, которые понравились всем участникам
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {matches.map(match => (
-                  <MovieResult
-                    key={match.movie_id}
-                    movie={match}
-                    totalParticipants={participants.length}
-                    highlight
-                  />
-                ))}
-              </CardContent>
-            </Card>
-          ) : (
-            <Card className="fade-in">
-              <CardContent className="text-center py-8">
-                <Film className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">
-                  К сожалению, полных совпадений нет.
-                  <br />
-                  Попробуйте ещё раз с другими фильмами!
-                </p>
-              </CardContent>
-            </Card>
-          )}
+          {matches.length > 0
+            ? (
+                <Card className="fade-in border-success/50">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-success">
+                      <Star className="h-5 w-5 fill-success" />
+                      Идеальные совпадения!
+                    </CardTitle>
+                    <CardDescription>
+                      Фильмы, которые понравились всем участникам
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {matches.map(match => (
+                      <MovieResult
+                        key={match.movie_id}
+                        movie={match}
+                        totalParticipants={participants.length}
+                        highlight
+                      />
+                    ))}
+                  </CardContent>
+                </Card>
+              )
+            : (
+                <Card className="fade-in">
+                  <CardContent className="text-center py-8">
+                    <Film className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">
+                      К сожалению, полных совпадений нет.
+                      <br />
+                      Попробуйте ещё раз с другими фильмами!
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
 
           {/* Частичные совпадения */}
           {partial.length > 0 && (
@@ -232,7 +243,9 @@ export default function ResultsPage() {
               {showNoMatch && (
                 <CardContent>
                   <p className="text-sm text-muted-foreground">
-                    {results.noMatch.length} фильмов никому не понравились
+                    {results.noMatch.length}
+                    {' '}
+                    фильмов никому не понравились
                   </p>
                 </CardContent>
               )}
@@ -241,7 +254,7 @@ export default function ResultsPage() {
 
           {/* Actions */}
           <div className="flex gap-3 fade-in">
-            <Button variant="secondary" className="flex-1" onClick={handleShare}>
+            <Button variant="secondary" className="flex-1" onClick={() => void handleShare()}>
               <Share2 className="h-4 w-4 mr-2" />
               Поделиться
             </Button>
@@ -254,12 +267,6 @@ export default function ResultsPage() {
       </main>
     </>
   );
-}
-
-interface MovieResultProps {
-  movie: MovieWithDetails;
-  totalParticipants: number;
-  highlight?: boolean;
 }
 
 function MovieResult({ movie, totalParticipants, highlight }: MovieResultProps) {
@@ -295,7 +302,12 @@ function MovieResult({ movie, totalParticipants, highlight }: MovieResultProps) 
           </>
         )}
         <Badge variant={highlight ? 'success' : 'secondary'} className="mt-2">
-          {movie.count} из {totalParticipants} голосов
+          {movie.count}
+          {' '}
+          из
+          {totalParticipants}
+          {' '}
+          голосов
         </Badge>
       </div>
     </div>

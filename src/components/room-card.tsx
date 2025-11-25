@@ -1,11 +1,9 @@
+import Link from 'next/link';
+import { Calendar, Users } from 'lucide-react';
+
 import type { Database } from '@/types/database';
 
-import Link from 'next/link';
-import {
-  Calendar,
-  Users,
-} from 'lucide-react';
-
+import { ROUTES } from '@/lib/constants';
 import {
   Badge,
   Card,
@@ -13,7 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui';
-import { ROUTES } from '@/lib/constants';
 
 type Room = Database['public']['Tables']['rooms']['Row'];
 
@@ -71,4 +68,3 @@ export function RoomCard({ room, participantCount = 0 }: RoomCardProps) {
     </Link>
   );
 }
-

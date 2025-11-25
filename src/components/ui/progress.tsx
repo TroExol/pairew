@@ -27,4 +27,3 @@ export function Progress({ value, max = 100, className, ...props }: ProgressProp
     </div>
   );
 }
-
