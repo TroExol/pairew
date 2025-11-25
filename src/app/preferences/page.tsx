@@ -173,7 +173,7 @@ export default function PreferencesPage() {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2 mb-6">
-                  {genres.map(genre => (
+                  {genres?.map(genre => (
                     <Chip
                       key={genre.id}
                       selected={selectedGenres.includes(genre.id)}
