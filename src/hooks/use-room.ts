@@ -205,11 +205,18 @@ export function useRoom(roomId?: string): UseRoomReturn {
   const startVoting = useCallback(async () => {
     if (!room) throw new Error('No room');
 
-    await supabase
-      .from('rooms')
-      .update({ status: 'voting' })
-      .eq('id', room.id);
-  }, [room, supabase]);
+    // Вызываем API, который атомарно генерирует фильмы и меняет статус
+    const response = await fetch('/api/rooms/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ roomId: room.id }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json() as { error: string };
+      throw new Error(errorData.error || 'Failed to start voting');
+    }
+  }, [room]);
 
   const finishVoting = useCallback(async () => {
     if (!room) throw new Error('No room');
