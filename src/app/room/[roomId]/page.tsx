@@ -109,10 +109,14 @@ export default function RoomPage() {
 
     try {
       await vote(movie.id, direction === 'right');
+      const newVoteCount = getVoteCount() + 1;
 
-      if (getVoteCount() + 1 >= APP_CONFIG.MAX_SWIPES || currentIndex >= movies.length - 1) {
-        // Завершаем голосование
+      if (newVoteCount >= APP_CONFIG.MAX_SWIPES) {
+        // Достигли максимума свайпов - переходим к результатам
         router.push(ROUTES.RESULTS(roomId));
+      } else if (currentIndex >= movies.length - 1) {
+        // Фильмы закончились, но ещё не достигли лимита - показываем сообщение
+        setCurrentIndex(prev => prev + 1);
       } else {
         setCurrentIndex(prev => prev + 1);
       }
@@ -298,7 +302,20 @@ export default function RoomPage() {
                 : (
                     <Card>
                       <CardContent className="text-center py-8">
-                        <p className="text-muted-foreground">Фильмы закончились!</p>
+                        <p className="text-lg font-medium mb-2">Фильмы закончились!</p>
+                        <p className="text-muted-foreground mb-4">
+                          Вы просмотрели
+                          {' '}
+                          {voteCount}
+                          {' '}
+                          фильмов.
+                          {voteCount < APP_CONFIG.MAX_SWIPES && (
+                            <>
+                              <br />
+                              Попробуйте изменить предпочтения, чтобы получить больше фильмов.
+                            </>
+                          )}
+                        </p>
                         <Button
                           className="mt-4"
                           onClick={() => router.push(ROUTES.RESULTS(roomId))}

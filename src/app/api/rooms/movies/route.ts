@@ -72,13 +72,44 @@ export async function GET(request: NextRequest) {
   const yearTo = yearToValues.length > 0 ? Math.min(...yearToValues) : undefined;
 
   try {
-    const movies = await tmdbClient.discoverMovies({
+    // Первая попытка - с полными фильтрами
+    let movies = await tmdbClient.discoverMovies({
       genres: commonGenres.length > 0 ? commonGenres : undefined,
       yearFrom,
       yearTo,
       page,
       sortBy: 'popularity.desc',
     });
+
+    // Если фильмов слишком мало (меньше 10), пробуем без года
+    if (movies.results.length < 10 && (yearFrom || yearTo)) {
+      const moviesWithoutYear = await tmdbClient.discoverMovies({
+        genres: commonGenres.length > 0 ? commonGenres : undefined,
+        page,
+        sortBy: 'popularity.desc',
+      });
+
+      // Объединяем результаты, удаляя дубликаты
+      const existingIds = new Set(movies.results.map(m => m.id));
+      const additionalMovies = moviesWithoutYear.results.filter(m => !existingIds.has(m.id));
+      movies = {
+        ...movies,
+        results: [...movies.results, ...additionalMovies].slice(0, 20),
+        total_results: movies.total_results + additionalMovies.length,
+      };
+    }
+
+    // Если всё ещё мало - добавляем популярные фильмы без фильтров
+    if (movies.results.length < 10) {
+      const popularMovies = await tmdbClient.getPopularMovies(page);
+      const existingIds = new Set(movies.results.map(m => m.id));
+      const additionalMovies = popularMovies.results.filter(m => !existingIds.has(m.id));
+      movies = {
+        ...movies,
+        results: [...movies.results, ...additionalMovies].slice(0, 20),
+        total_results: movies.total_results + additionalMovies.length,
+      };
+    }
 
     return NextResponse.json(movies);
   } catch (error) {

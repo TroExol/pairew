@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import {
   ChevronDown,
   ChevronUp,
+  Clock,
   Film,
   RefreshCw,
   Share2,
@@ -28,6 +29,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  Progress,
   Spinner,
   useToast,
 } from '@/components/ui';
@@ -51,9 +53,9 @@ export default function ResultsPage() {
   const router = useRouter();
   const roomId = params.roomId as string;
 
-  useAuth();
+  const { user } = useAuth();
   const { room, participants, finishVoting } = useRoom(roomId);
-  const { results, loading: resultsLoading } = useRoomResults(roomId);
+  const { results, loading: resultsLoading, votingProgress } = useRoomResults(roomId);
   const { addToast } = useToast();
 
   const [matches, setMatches] = useState<MovieWithDetails[]>([]);
@@ -62,12 +64,12 @@ export default function ResultsPage() {
   const [showPartial, setShowPartial] = useState(false);
   const [showNoMatch, setShowNoMatch] = useState(false);
 
-  // Завершаем голосование при входе на страницу результатов
+  // Автоматически завершаем голосование только когда ВСЕ участники проголосовали
   useEffect(() => {
-    if (room?.status === 'voting') {
+    if (room?.status === 'voting' && votingProgress?.allFinished) {
       void finishVoting();
     }
-  }, [room?.status, finishVoting]);
+  }, [room?.status, votingProgress?.allFinished, finishVoting]);
 
   // Загружаем детали фильмов
   useEffect(() => {
@@ -127,6 +129,9 @@ export default function ResultsPage() {
     router.push('/');
   };
 
+  const isVotingInProgress = room?.status === 'voting' && !votingProgress?.allFinished;
+  const isCreator = room?.creator_id === user?.id;
+
   if (resultsLoading || loadingDetails) {
     return (
       <>
@@ -146,7 +151,9 @@ export default function ResultsPage() {
         <div className="max-w-2xl mx-auto space-y-6">
           {/* Header */}
           <div className="text-center fade-in">
-            <h1 className="text-3xl font-bold gradient-text mb-2">Результаты</h1>
+            <h1 className="text-3xl font-bold gradient-text mb-2">
+              {isVotingInProgress ? 'Промежуточные результаты' : 'Результаты'}
+            </h1>
             <p className="text-muted-foreground">
               <Users className="inline h-4 w-4 mr-1" />
               {participants.length}
@@ -154,6 +161,44 @@ export default function ResultsPage() {
               участников
             </p>
           </div>
+
+          {/* Статус голосования */}
+          {isVotingInProgress && votingProgress && (
+            <Card className="fade-in border-warning/50 bg-warning/5">
+              <CardContent className="py-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <Clock className="h-5 w-5 text-warning animate-pulse" />
+                  <div className="flex-1">
+                    <p className="font-medium">Голосование ещё не завершено</p>
+                    <p className="text-sm text-muted-foreground">
+                      {votingProgress.finishedCount}
+                      {' '}
+                      из
+                      {' '}
+                      {votingProgress.participantCount}
+                      {' '}
+                      участников закончили
+                    </p>
+                  </div>
+                </div>
+                <Progress
+                  value={votingProgress.finishedCount}
+                  max={votingProgress.participantCount}
+                  className="h-2"
+                />
+                {isCreator && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="mt-3 w-full"
+                    onClick={() => void finishVoting()}
+                  >
+                    Завершить голосование сейчас
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Полные совпадения */}
           {matches.length > 0
@@ -289,8 +334,12 @@ function MovieResult({ movie, totalParticipants, highlight }: MovieResultProps) 
         {details && (
           <>
             <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-              <span>{new Date(details.release_date).getFullYear()}</span>
-              <span>•</span>
+              {details.release_date && (
+                <>
+                  <span>{new Date(details.release_date).getFullYear()}</span>
+                  <span>•</span>
+                </>
+              )}
               <div className="flex items-center gap-1">
                 <Star className="h-3 w-3 fill-warning text-warning" />
                 <span>{details.vote_average.toFixed(1)}</span>
@@ -305,6 +354,7 @@ function MovieResult({ movie, totalParticipants, highlight }: MovieResultProps) 
           {movie.count}
           {' '}
           из
+          {' '}
           {totalParticipants}
           {' '}
           голосов
