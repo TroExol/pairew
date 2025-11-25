@@ -48,7 +48,7 @@
   }
 
   html, body {
-    @apply h-full overflow-hidden;
+    @apply h-full;
   }
 
   body {
@@ -56,15 +56,13 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
-  /* Фиксированная высота экрана с учетом мобильных браузеров */
-  .full-height {
+  /* Полноэкранный контейнер без скролла (для главной и голосования) */
+  .page-fixed {
     height: 100vh;
     height: 100dvh;
-  }
-
-  .main-height {
-    height: calc(100vh - 4rem);
-    height: calc(100dvh - 4rem);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
 
   /* Скроллбар */

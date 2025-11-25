@@ -136,7 +136,7 @@ export default function RoomPage() {
 
   if (roomLoading) {
     return (
-      <div className="full-height flex flex-col overflow-hidden">
+      <div className="page-fixed">
         <Header />
         <main className="flex-1 flex items-center justify-center">
           <Spinner size="lg" />
@@ -147,7 +147,7 @@ export default function RoomPage() {
 
   if (!room) {
     return (
-      <div className="full-height flex flex-col overflow-hidden">
+      <div className="page-fixed">
         <Header />
         <main className="flex-1 flex items-center justify-center p-4">
           <Card className="max-w-md w-full">
@@ -174,7 +174,7 @@ export default function RoomPage() {
     const canStart = participants.length >= APP_CONFIG.MIN_PARTICIPANTS;
 
     return (
-      <div className="full-height flex flex-col overflow-hidden">
+      <div className="page-fixed">
         <Header />
         <main className="flex-1 flex flex-col items-center justify-center p-4 overflow-auto">
           <div className="max-w-md w-full space-y-6">
@@ -270,7 +270,7 @@ export default function RoomPage() {
     const voteCount = getVoteCount();
 
     return (
-      <div className="full-height flex flex-col overflow-hidden">
+      <div className="page-fixed">
         <Header />
         <main className="flex-1 flex flex-col p-4 overflow-hidden">
           <div className="max-w-md mx-auto w-full flex-1 flex flex-col min-h-0">

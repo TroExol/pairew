@@ -97,7 +97,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="full-height flex flex-col overflow-hidden">
+    <div className="page-fixed">
       <Header />
       <main className="flex-1 flex flex-col items-center justify-center p-4 overflow-auto">
         <div className="w-full max-w-md space-y-6">
