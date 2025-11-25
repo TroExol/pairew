@@ -1,6 +1,10 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import {
+  Suspense,
+  useEffect,
+  useState,
+} from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
@@ -54,6 +58,16 @@ function LoginContent() {
 
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirectTo') || '/';
+
+  // Parse auth errors from URL on mount
+  useEffect(() => {
+    const authError = parseAuthError(searchParams, window.location.hash);
+    if (authError) {
+      setMessage({ type: 'error', text: authError });
+      // Clean up URL without reloading the page
+      window.history.replaceState({}, '', '/auth/login');
+    }
+  }, [searchParams]);
 
   const handleOAuthLogin = async (provider: 'google') => {
     setLoading(true);
@@ -203,4 +217,38 @@ function LoginSkeleton() {
       </div>
     </main>
   );
+}
+
+function parseAuthError(searchParams: URLSearchParams, hash: string): string | null {
+  // Check query params first
+  const queryError = searchParams.get('error');
+
+  // Parse hash params (format: #error=...&error_code=...&error_description=...)
+  const hashParams = new URLSearchParams(hash.replace('#', ''));
+  const hashError = hashParams.get('error');
+  const errorDescription = hashParams.get('error_description');
+
+  if (errorDescription) {
+    // Decode the description (it may be double-encoded)
+    try {
+      return decodeURIComponent(decodeURIComponent(errorDescription));
+    } catch {
+      return decodeURIComponent(errorDescription);
+    }
+  }
+
+  if (hashError || queryError) {
+    const errorCode = hashError || queryError;
+    // Map common error codes to user-friendly messages
+    const errorMessages: Record<string, string> = {
+      auth_failed: 'Не удалось авторизоваться. Попробуйте ещё раз.',
+      server_error: 'Ошибка сервера. Попробуйте позже.',
+      access_denied: 'Доступ запрещён. Возможно, вы отменили авторизацию.',
+      unauthorized_client: 'Ошибка конфигурации. Обратитесь к администратору.',
+      invalid_request: 'Некорректный запрос. Попробуйте ещё раз.',
+    };
+    return errorMessages[errorCode || ''] || `Ошибка авторизации: ${errorCode}`;
+  }
+
+  return null;
 }
