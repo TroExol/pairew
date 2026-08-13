@@ -1,3 +1,5 @@
+**English** u{00B7} [u{0420}u{0443}u{0441}u{0441}u{043A}u{0438}u{0439}](./README.ru.md)
+
 # Pairew
 
 **Swipe, vote, and find a film everyone actually wants to watch.**
